@@ -14,8 +14,9 @@ ymaps.modules.define('visualization.Heatmap', [
      * @param {Object} options Объект с опциями отображения тепловой карты:
      *  width - ширина карты;
      *  height - высота карты;
-     *  radius - радиус точки;
-     *  blur - радиус размытия вокруг точки, на тепловой карте;
+     *  pointRadius - радиус точки;
+     *  pointBlur - радиус размытия вокруг точки, на тепловой карте;
+     *  pointOpaicty - прозрачность точки;
      *  gradient - объект задающий градиент.
      */
     var Heatmap = function (options) {
@@ -27,9 +28,9 @@ ymaps.modules.define('visualization.Heatmap', [
 
         this._context = this._canvas.getContext('2d');
 
-        this._data = [];
+        this._points = [];
 
-        this._circle = this._createCircle();
+        this._pointImage = this._createPointImage();
         this._gradient = this._createGradient();
     };
 
@@ -40,28 +41,28 @@ ymaps.modules.define('visualization.Heatmap', [
         width: 256,
         height: 256,
 
-        radius: 5,
-        blur: 15,
+        pointRadius: 5,
+        pointBlur: 15,
+        pointOpaicty: 0.5,
 
         gradient: {
-            0.4: 'blue',
-            0.6: 'cyan',
-            0.7: 'lime',
-            0.8: 'yellow',
-            1.0: 'red'
+            0.1: 'lime',
+            0.4: 'yellow',
+            0.8: 'rgba(234, 72, 58, 1)',
+            1.0: 'rgba(162, 36, 25, 1)'
         }
     };
 
     /**
      * Установка точек, которые будут нанесены на карту.
      *
-     * @param {Array} data Массив точек [[x1, y1], [x2, y2], ...].
+     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
      * @returns {Heatmap}
      */
-    Heatmap.prototype.setData = function (data) {
+    Heatmap.prototype.setPoints = function (points) {
         // Префильтрация, чтобы не рисовать точки, которых не будет видно.
         var isPointInBounds = this._isPointInBounds.bind(this);
-        this._data = data.filter(isPointInBounds);
+        this._points = points.filter(isPointInBounds);
         return this;
     };
 
@@ -82,7 +83,7 @@ ymaps.modules.define('visualization.Heatmap', [
      * @returns {Boolean} True - попадает.
      */
     Heatmap.prototype._isPointInBounds = function (point) {
-        var offset = this._options.radius + this._options.blur;
+        var offset = this._options.pointRadius + this._options.pointBlur;
         return (point[0] >= -offset) &&
             (point[0] <= this._options.width + offset) &&
             (point[1] >= -offset) &&
@@ -96,14 +97,15 @@ ymaps.modules.define('visualization.Heatmap', [
      */
     Heatmap.prototype._drawHeatmap = function () {
         var context = this._context,
-            radius = this._options.radius + this._options.blur;
+            radius = this._options.pointRadius + this._options.pointBlur;
 
         context.clearRect(0, 0, this._options.width, this._options.height);
 
-        for (var i = 0, length = this._data.length, point; i < length; i++) {
-            point = this._data[i];
+        for (var i = 0, length = this._points.length, point; i < length; i++) {
+            point = this._points[i];
+            context.globalAlpha = this._options.pointOpaicty;
             context.drawImage(
-                this._circle,
+                this._pointImage,
                 point[0] - radius,
                 point[1] - radius
             );
@@ -119,27 +121,34 @@ ymaps.modules.define('visualization.Heatmap', [
     /**
      * Создание тени круга, которым будут нарисованы точки.
      *
-     * @returns {HTMLElement} circle Канвас с отрисованной тенью круга.
+     * @returns {HTMLElement} pointImage Канвас с отрисованной тенью круга.
      */
-    Heatmap.prototype._createCircle = function () {
-        var circle = document.createElement('canvas'),
-            context = circle.getContext('2d'),
-            radius = this._options.radius + this._options.blur;
+    Heatmap.prototype._createPointImage = function () {
+        var pointImage = document.createElement('canvas'),
+            context = pointImage.getContext('2d'),
+            radius = this._options.pointRadius + this._options.pointBlur;
 
-        circle.width = circle.height = 2 * radius;
+        pointImage.width = pointImage.height = 2 * radius;
 
         // Тень смещаем в соседний квадрат.
         context.shadowOffsetX = context.shadowOffsetY = 1.5 * radius;
-        context.shadowBlur = this._options.blur;
+        context.shadowBlur = this._options.pointBlur;
         context.shadowColor = 'black';
 
         context.beginPath();
         // Круг рисуем вне зоны видимости, фактически от круга оставляем только тень.
-        context.arc(- 0.5 * radius, -0.5 * radius, this._options.radius, 0, 2 * Math.PI, true);
+        context.arc(
+            -0.5 * radius,
+            -0.5 * radius,
+            this._options.pointRadius,
+            0,
+            2 * Math.PI,
+            true
+        );
         context.closePath();
         context.fill();
 
-        return circle;
+        return pointImage;
     };
 
     /**
@@ -156,7 +165,9 @@ ymaps.modules.define('visualization.Heatmap', [
         canvas.height = 256;
 
         for (var i in this._options.gradient) {
-            gradient.addColorStop(i, this._options.gradient[i]);
+            if (this._options.gradient.hasOwnProperty(i)) {
+                gradient.addColorStop(i, this._options.gradient[i]);
+            }
         }
 
         context.fillStyle = gradient;
