@@ -12,10 +12,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * Настройки карты по умолчанию.
      */
     var DEFAULT_OPTIONS = {
-        width: 256,
-        height: 256,
         opacity: 0.75,
-
         pointRadius: 5,
         pointBlur: 15,
         pointGradient: {
@@ -38,9 +35,6 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      *  pointGradient - объект задающий градиент.
      */
     var Canvas = function (width, height, options) {
-        this.options = new OptionManager(options);
-        this.options.setParent(Canvas._defaultOptions);
-
         this._canvas = document.createElement('canvas');
         this._canvas.width = width;
         this._canvas.height = height;
@@ -49,11 +43,22 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
 
         this._points = [];
 
-        this._pointImage = this._createPointImage();
-        this._gradient = this._createGradient();
+        this.options = new OptionManager(DEFAULT_OPTIONS);
+        this.options.set(options);
+
+        var onOptionsChange = this._onOptionsChange.bind(this);
+        this.options.events.add('change', onOptionsChange);
+        onOptionsChange();
     };
 
-    Canvas._defaultOptions = new OptionManager(DEFAULT_OPTIONS);
+    /**
+     * Получение карты в виде dataURL.
+     *
+     * @returns {Number} margin.
+     */
+    Canvas.prototype.getBrushRadius = function () {
+        return this.options.get('pointRadius') + this.options.get('pointBlur');
+    };
 
     /**
      * Установка точек, которые будут нанесены на карту.
@@ -62,13 +67,8 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @returns {Canvas}
      */
     Canvas.prototype.setPoints = function (points) {
-        // Префильтрация, чтобы не рисовать точки, которых не будет видно.
-        var self = this;
-        var offset = this.options.get('pointRadius') + this.options.get('pointBlur');
-        var isPointInBounds = function (point) {
-            return self._isPointInBounds(point, offset);
-        };
-        this._points = points.filter(isPointInBounds);
+        this._points = JSON.parse(JSON.stringify(points));
+
         return this;
     };
 
@@ -79,49 +79,16 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      */
     Canvas.prototype.getDataURL = function () {
         this._drawCanvas();
+
         return this._canvas.toDataURL();
     };
 
     /**
-     * Проверка попадаения точки в границы карты.
-     *
-     * @param {Array} point Точка point[0] = x, point[1] = y.
-     * @param {Number} offset На сколько надо расширить видимую область.
-     * @returns {Boolean} True - попадает.
+     * Обработчик изменений опций тепловой карты.
      */
-    Canvas.prototype._isPointInBounds = function (point, offset) {
-        offset = offset || 0;
-        return (point[0] >= -offset) &&
-            (point[0] <= this._canvas.width + offset) &&
-            (point[1] >= -offset) &&
-            (point[0] <= this._canvas.height + offset);
-    };
-
-    /**
-     * Отрисовка тепловой карты.
-     *
-     * @returns {Canvas}
-     */
-    Canvas.prototype._drawCanvas = function () {
-        var context = this._context,
-            radius = this.options.get('pointRadius') + this.options.get('pointBlur');
-
-        context.clearRect(0, 0, this._canvas.width, this._canvas.height);
-
-        for (var i = 0, length = this._points.length, point; i < length; i++) {
-            point = this._points[i];
-            context.drawImage(
-                this._pointImage,
-                point[0] - radius,
-                point[1] - radius
-            );
-        }
-
-        var heatmapImage = context.getImageData(0, 0, this._canvas.width, this._canvas.height);
-        this._colorize(heatmapImage.data);
-        context.putImageData(heatmapImage, 0, 0);
-
-        return this;
+    Canvas.prototype._onOptionsChange = function () {
+        this._pointImage = this._createPointImage();
+        this._gradient = this._createGradient();
     };
 
     /**
@@ -132,25 +99,18 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     Canvas.prototype._createPointImage = function () {
         var pointImage = document.createElement('canvas'),
             context = pointImage.getContext('2d'),
-            radius = this.options.get('pointRadius') + this.options.get('pointBlur');
+            radius = this.getBrushRadius();
 
         pointImage.width = pointImage.height = 2 * radius;
 
         // Тень смещаем в соседний квадрат.
-        context.shadowOffsetX = context.shadowOffsetY = 1.5 * radius;
+        context.shadowOffsetX = context.shadowOffsetY = 2 * radius;
         context.shadowBlur = this.options.get('pointBlur');
         context.shadowColor = 'black';
 
         context.beginPath();
         // Круг рисуем вне зоны видимости, фактически от круга оставляем только тень.
-        context.arc(
-            -0.5 * radius,
-            -0.5 * radius,
-            this.options.get('pointRadius'),
-            0,
-            2 * Math.PI,
-            true
-        );
+        context.arc(-1 * radius, -1 * radius, this.options.get('pointRadius'), 0, 2 * Math.PI, true);
         context.closePath();
         context.fill();
 
@@ -181,6 +141,29 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
         context.fillRect(0, 0, 1, 256);
 
         return context.getImageData(0, 0, 1, 256).data;
+    };
+
+    /**
+     * Отрисовка тепловой карты.
+     *
+     * @returns {Canvas}
+     */
+    Canvas.prototype._drawCanvas = function () {
+        var context = this._context,
+            radius = this.getBrushRadius();
+
+        context.clearRect(0, 0, this._canvas.width, this._canvas.height);
+
+        for (var i = 0, length = this._points.length, point; i < length; i++) {
+            point = this._points[i];
+            context.drawImage(this._pointImage, point[0] - radius, point[1] - radius);
+        }
+
+        var heatmapImage = context.getImageData(0, 0, this._canvas.width, this._canvas.height);
+        this._colorize(heatmapImage.data);
+        context.putImageData(heatmapImage, 0, 0);
+
+        return this;
     };
 
     /**
