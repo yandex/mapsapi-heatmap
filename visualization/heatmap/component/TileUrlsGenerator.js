@@ -1,37 +1,29 @@
 /**
  * @fileOverview Модуль, позволяющий генерировать тайлы для тепловой карты.
  */
-ymaps.modules.define('visualization.HeatmapTileUrlsGenerator', [
-    'visualization.Heatmap',
+ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
     'projection.wgs84Mercator',
-    'util.extend'
+    'visualization.heatmap.component.Canvas'
 ], function (
     provide,
-    Heatmap,
     projection,
-    extend
+    HeatmapCanvas
 ) {
     /**
-     * Конструктов генератора.
+     * Конструктов генератора url тайлов тепловой карты.
      *
      * @param {Layer} layer Слой тепловой карты.
      * @param {Array} points Массив точек в географический координатах.
      * @param {Object} options Объект с опциями отображения тепловой карты:
+     *  opacity - прозрачность карты;
      *  pointRadius - радиус точки;
      *  pointBlur - радиус размытия вокруг точки, на тепловой карте;
-     *  pointOpaicty - прозрачность точки;
-     *  gradient - объект задающий градиент.
+     *  pointGradient - объект задающий градиент.
      */
-    var HeatmapTileUrlsGenerator = function (layer, points, options) {
-        options = extend(options || {}, {
-            width: 256,
-            height: 256
-        });
-        this._heatmap = new Heatmap(options);
-
+    var TileUrlsGenerator = function (layer, points, options) {
         this._points = points || [];
-
         this._layer = layer;
+        this._heatmapCanvas = new HeatmapCanvas(256, 256, options);
     };
 
     /**
@@ -41,7 +33,7 @@ ymaps.modules.define('visualization.HeatmapTileUrlsGenerator', [
      * @param {Number} zoom Зум тайла.
      * @returns {String} dataUrl.
      */
-    HeatmapTileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
+    TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
         var layer = this._layer,
             tileBounds = layer.numberToClientBounds(tileNumber, zoom),
             points = this._getPoints(zoom);
@@ -53,9 +45,9 @@ ymaps.modules.define('visualization.HeatmapTileUrlsGenerator', [
                 point[1] - tileBounds[0][1]
             ];
         });
-        this._heatmap.setPoints(points);
+        this._heatmapCanvas.setPoints(points);
 
-        return this._heatmap.getDataURL();
+        return this._heatmapCanvas.getDataURL();
     };
 
     /**
@@ -64,7 +56,7 @@ ymaps.modules.define('visualization.HeatmapTileUrlsGenerator', [
      *
      * @returns {Array} Массив точек в глобальных координатах.
      */
-    HeatmapTileUrlsGenerator.prototype._getPoints = function (zoom) {
+    TileUrlsGenerator.prototype._getPoints = function (zoom) {
         this._pointsPerZoom = this._pointsPerZoom || {};
 
         if (!this._pointsPerZoom[zoom]) {
@@ -75,5 +67,5 @@ ymaps.modules.define('visualization.HeatmapTileUrlsGenerator', [
         return this._pointsPerZoom[zoom];
     };
 
-    provide(HeatmapTileUrlsGenerator);
+    provide(TileUrlsGenerator);
 });
