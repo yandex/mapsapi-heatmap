@@ -14,6 +14,7 @@ ymaps.modules.define('visualization.Heatmap', [
      * @param {Object} options Объект с опциями отображения тепловой карты:
      *  width - ширина карты;
      *  height - высота карты;
+     *  opacity - глобальная прозрачность карты;
      *  pointRadius - радиус точки;
      *  pointBlur - радиус размытия вокруг точки, на тепловой карте;
      *  pointOpaicty - прозрачность точки;
@@ -40,14 +41,15 @@ ymaps.modules.define('visualization.Heatmap', [
     Heatmap.prototype._options = {
         width: 256,
         height: 256,
+        opacity: 0.75,
 
         pointRadius: 5,
         pointBlur: 15,
-        pointOpaicty: 0.5,
+        pointOpaicty: 1,
 
         gradient: {
-            0.1: 'lime',
-            0.4: 'yellow',
+            0.1: 'rgba(128, 255, 0, 1)',
+            0.4: 'rgba(255, 255, 0, 1)',
             0.8: 'rgba(234, 72, 58, 1)',
             1.0: 'rgba(162, 36, 25, 1)'
         }
@@ -111,9 +113,9 @@ ymaps.modules.define('visualization.Heatmap', [
             );
         }
 
-        var colored = context.getImageData(0, 0, this._options.width, this._options.height);
-        this._colorize(colored.data, this._gradient);
-        context.putImageData(colored, 0, 0);
+        var heatmapImage = context.getImageData(0, 0, this._options.width, this._options.height);
+        this._colorize(heatmapImage.data);
+        context.putImageData(heatmapImage, 0, 0);
 
         return this;
     };
@@ -182,15 +184,16 @@ ymaps.modules.define('visualization.Heatmap', [
      * @param {Array} pixels Бесцветная тепловая карта [r1, g1, b1, a1, r2, ...].
      * @param {Array} gradient Градиент [r1, g1, b1, a1, r2, ...].
      */
-    Heatmap.prototype._colorize = function (pixels, gradient) {
+    Heatmap.prototype._colorize = function (pixels) {
         for (var i = 3, length = pixels.length, j; i < length; i += 4) {
             // Получаем цвет в градиенте, по значению прозрачночти.
             j = 4 * pixels[i];
             if (j) {
-                pixels[i - 3] = gradient[j];
-                pixels[i - 2] = gradient[j + 1];
-                pixels[i - 1] = gradient[j + 2];
+                pixels[i - 3] = this._gradient[j];
+                pixels[i - 2] = this._gradient[j + 1];
+                pixels[i - 1] = this._gradient[j + 2];
             }
+            pixels[i] = this._options.opacity * pixels[i];
         }
     };
 

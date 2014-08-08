@@ -14,6 +14,7 @@ ymaps.modules.define('visualization.HeatmapLayer', [
      *
      * @param {Array} points Массив точек в географический координатах.
      * @param {Object} options Объект с опциями отображения тепловой карты:
+     *  opacity - глобальная прозрачность карты;
      *  pointRadius - радиус точки;
      *  pointBlur - радиус размытия вокруг точки, на тепловой карте;
      *  pointOpaicty - прозрачность точки;
