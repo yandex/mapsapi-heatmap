@@ -24,6 +24,8 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
         this._points = points || [];
         this._layer = layer;
         this._heatmapCanvas = new HeatmapCanvas(256, 256, options);
+
+        this._cache = [];
     };
 
     /**
@@ -34,6 +36,11 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @returns {String} dataUrl.
      */
     TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
+        var cacheKey = tileNumber[0] + '-' + tileNumber[1] + '-' + zoom;
+        if (this._cache[cacheKey]) {
+            return this._cache[cacheKey];
+        }
+
         var layer = this._layer,
             tileBounds = layer.numberToClientBounds(tileNumber, zoom),
             points = this._getPoints(zoom);
@@ -47,7 +54,8 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
         });
         this._heatmapCanvas.setPoints(points);
 
-        return this._heatmapCanvas.getDataURL();
+        this._cache[cacheKey] = this._heatmapCanvas.getDataURL();
+        return this._cache[cacheKey];
     };
 
     /**

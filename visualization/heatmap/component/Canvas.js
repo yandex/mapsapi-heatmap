@@ -63,7 +63,11 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      */
     Canvas.prototype.setPoints = function (points) {
         // Префильтрация, чтобы не рисовать точки, которых не будет видно.
-        var isPointInBounds = this._isPointInBounds.bind(this);
+        var self = this;
+        var offset = this.options.get('pointRadius') + this.options.get('pointBlur');
+        var isPointInBounds = function (point) {
+            return self._isPointInBounds(point, offset);
+        };
         this._points = points.filter(isPointInBounds);
         return this;
     };
@@ -82,10 +86,11 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * Проверка попадаения точки в границы карты.
      *
      * @param {Array} point Точка point[0] = x, point[1] = y.
+     * @param {Number} offset На сколько надо расширить видимую область.
      * @returns {Boolean} True - попадает.
      */
-    Canvas.prototype._isPointInBounds = function (point) {
-        var offset = this.options.get('pointRadius') + this.options.get('pointBlur');
+    Canvas.prototype._isPointInBounds = function (point, offset) {
+        offset = offset || 0;
         return (point[0] >= -offset) &&
             (point[0] <= this._canvas.width + offset) &&
             (point[1] >= -offset) &&
