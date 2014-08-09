@@ -36,18 +36,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
         }
 
         this._heatmapCanvas = new HeatmapCanvas(TILE_SIZE[0], TILE_SIZE[1], options);
-    };
-
-    /**
-     * Установка опций отображения тепловой карты.
-     *
-     * @param {Object} options Объект с опциями отображения тепловой карты.
-     * @returns {TileUrlsGenerator}
-     */
-    TileUrlsGenerator.prototype.setOptions = function (options) {
-        this._heatmapCanvas.options.set(options);
-
-        return this;
+        this.options = this._heatmapCanvas.options;
     };
 
     /**

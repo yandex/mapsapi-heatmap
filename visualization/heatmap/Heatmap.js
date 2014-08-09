@@ -114,7 +114,7 @@ ymaps.modules.define('visualization.Heatmap', [
     Heatmap.prototype._onOptionsChange = function () {
         if (this._layer) {
             var options = this.options.getAll();
-            this._tileUrlsGenerator.setOptions(options);
+            this._tileUrlsGenerator.options.set(options);
 
             this._layer.update();
         }
