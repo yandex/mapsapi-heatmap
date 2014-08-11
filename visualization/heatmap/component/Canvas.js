@@ -1,15 +1,18 @@
 /**
  * Модуль отрисовки тепловой карты на canvas'e. Позволяет получить карту в формате dataURL.
  * @module visualization.heatmap.component.Canvas
- * @requires option.Manager
+ * @requires util.extend
+ * @requires Monitor
  *
  * @author Morozov Andrew <alt-j@yandex-team.ru>
  */
 ymaps.modules.define('visualization.heatmap.component.Canvas', [
-    'option.Manager'
+    'util.extend',
+    'Monitor'
 ],  function (
     provide,
-    OptionManager
+    extend,
+    Monitor
 ) {
     /**
      * @constant DEFAULT_OPTIONS
@@ -34,24 +37,24 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      *
      * @param {Number} width Ширина карты.
      * @param {Number} height Высота карты.
-     * @param {Object} options Объект с опциями отображения тепловой карты:
+     * @param {option.Manager} optionManager Менеджер с опциями отображения тепловой карты:
      *  opacity - прозрачность карты;
      *  pointRadius - радиус точки;
      *  pointBlur - радиус размытия вокруг точки, на тепловой карте;
      *  pointGradient - объект задающий градиент.
      */
-    var Canvas = function (width, height, options) {
+    var Canvas = function (width, height, optionManager) {
         this._canvas = document.createElement('canvas');
         this._canvas.width = width;
         this._canvas.height = height;
 
         this._context = this._canvas.getContext('2d');
 
-        this.options = new OptionManager(DEFAULT_OPTIONS);
-        this.options.set(options);
+        var options = extend({}, DEFAULT_OPTIONS, optionManager.getAll());
+        this.options = optionManager.set(options);
 
-        this.options.events.add('change', this._onOptionsChange.bind(this));
-        this._onOptionsChange();
+        this._refresh();
+        this._setupOptionMonitor();
     };
 
     /**
@@ -81,12 +84,33 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
 
     /**
      * @private
-     * @function _onOptionsChange
-     * @description Обработчик изменений опций тепловой карты.
+     * @function _setupOptionMonitor
+     * @description Устанавливает монитор на опции тепловой карты.
+     *
+     * @returns {Monitor} this._optionMonitor Монитор опций.
      */
-    Canvas.prototype._onOptionsChange = function () {
+    Canvas.prototype._setupOptionMonitor = function () {
+        this._optionMonitor = new Monitor(this.options);
+        
+        return this._optionMonitor
+            .add('opacity', this._refresh, this)
+            .add('pointRadius', this._refresh, this)
+            .add('pointBlur', this._refresh, this)
+            .add('pointGradient', this._refresh, this);
+    };
+
+    /**
+     * @private
+     * @function _refresh
+     * @description Пересоздает внутренние опции тепловой карты.
+     *
+     * @returns {Canvas}
+     */
+    Canvas.prototype._refresh = function () {
         this._pointImage = this._createPointImage();
         this._gradient = this._createGradient();
+
+        return this;
     };
 
     /**

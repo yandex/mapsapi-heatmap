@@ -3,7 +3,7 @@ Canvas
 
 Модуль отрисовки тепловой карты на canvas'e. Позволяет получить карту в формате dataURL.
 
-Canvas(width, height, options) 
+Canvas(width, height, optionManager) 
 -----------------------------
 Конструктор модуля отрисовки тепловой карты.
 
@@ -13,7 +13,7 @@ Canvas(width, height, options)
 
 **height**: Number, Высота карты.
 
-**options**: Object, Объект с опциями отображения тепловой карты:
+**optionManager**: option.Manager, Менеджер с опциями отображения тепловой карты:
  opacity - прозрачность карты;
  pointRadius - радиус точки;
  pointBlur - радиус размытия вокруг точки, на тепловой карте;
@@ -26,6 +26,7 @@ getBrushRadius()
 
 **Returns**: Number, margin.
 
+
 getDataURLHeatmap(points) 
 -----------------------------
 Получение карты в виде dataURL с нанесенными точками.
@@ -36,9 +37,19 @@ getDataURLHeatmap(points)
 
 **Returns**: String, dataURL.
 
-_onOptionsChange() 
+
+_setupOptionMonitor() 
 -----------------------------
-Обработчик изменений опций тепловой карты.
+Устанавливает монитор на опции тепловой карты.
+
+**Returns**: Monitor, this._optionMonitor Монитор опций.
+
+
+_refresh() 
+-----------------------------
+Пересоздает внутренние опции тепловой карты.
+
+**Returns**: Canvas, Пересоздает внутренние опции тепловой карты.
 
 
 _createPointImage() 
@@ -47,17 +58,20 @@ _createPointImage()
 
 **Returns**: HTMLElement, pointImage Канвас с отрисованной тенью круга.
 
+
 _createGradient() 
 -----------------------------
 Создание 256x1 градиента, которым будет раскрашена карта.
 
 **Returns**: Array, [r1, g1, b1, a1, r2, ...].
 
+
 _drawHeatmap() 
 -----------------------------
 Отрисовка тепловой карты.
 
-**Returns**: Canvas.
+**Returns**: Canvas, Отрисовка тепловой карты.
+
 
 _colorize(pixels, gradient) 
 -----------------------------

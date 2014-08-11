@@ -2,7 +2,8 @@
  * Модуль для нанесения слоя тепловой карты.
  * @module visualization.Heatmap
  * @requires util.math.areEqual
- * @requires option.Manage
+ * @requires option.Manager
+ * @requires Monitor
  * @requires Layer
  * @requires visualization.heatmap.component.TileUrlsGenerator
  *
@@ -11,12 +12,14 @@
 ymaps.modules.define('visualization.Heatmap', [
     'util.math.areEqual',
     'option.Manager',
+    'Monitor',
     'Layer',
     'visualization.heatmap.component.TileUrlsGenerator'
 ], function (
     provide,
     areEqual,
     OptionManager,
+    Monitor,
     Layer,
     HeatmapTileUrlsGenerator
 ) {
@@ -41,7 +44,6 @@ ymaps.modules.define('visualization.Heatmap', [
         }
 
         this.options = new OptionManager(options);
-        this.options.events.add('change', this._onOptionsChange.bind(this));
     };
 
     /**
@@ -111,16 +113,19 @@ ymaps.modules.define('visualization.Heatmap', [
 
     /**
      * @private
-     * @function _onOptionsChange
-     * @description Обработчик изменений опций тепловой карты.
+     * @function _setupOptionMonitor
+     * @description Устанавливает монитор на опции тепловой карты.
+     *
+     * @returns {Monitor} this._optionMonitor Монитор опций.
      */
-    Heatmap.prototype._onOptionsChange = function () {
-        if (this._tileUrlsGenerator) {
-            var options = this.options.getAll();
-            this._tileUrlsGenerator.options.set(options);
-
-            this._layer.update();
-        }
+    Heatmap.prototype._setupOptionMonitor = function () {
+        this._optionMonitor = new Monitor(this.options);
+        
+        return this._optionMonitor
+            .add('opacity', this._layer.update, this._layer)
+            .add('pointRadius', this._layer.update, this._layer)
+            .add('pointBlur', this._layer.update, this._layer)
+            .add('pointGradient', this._layer.update, this._layer);
     };
 
     /**
@@ -155,12 +160,13 @@ ymaps.modules.define('visualization.Heatmap', [
         this._tileUrlsGenerator = new HeatmapTileUrlsGenerator(
             this._layer,
             this._temporary.points,
-            this.options.getAll()
+            this.options
         );
         this._layer.getTileUrl = this._tileUrlsGenerator
             .getTileUrl
             .bind(this._tileUrlsGenerator);
 
+        this._setupOptionMonitor();
         this._temporary = null;
 
         return this;

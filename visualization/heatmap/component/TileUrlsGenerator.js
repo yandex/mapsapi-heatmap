@@ -29,13 +29,13 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      *
      * @param {Layer} layer Слой тепловой карты.
      * @param {Array} points Массив точек в географический координатах.
-     * @param {Object} options Объект с опциями отображения тепловой карты:
+     * @param {option.Manager} optionManager Менеджер с опциями отображения тепловой карты:
      *  opacity - прозрачность карты;
      *  pointRadius - радиус точки;
      *  pointBlur - радиус размытия вокруг точки, на тепловой карте;
      *  pointGradient - объект задающий градиент.
      */
-    var TileUrlsGenerator = function (layer, points, options) {
+    var TileUrlsGenerator = function (layer, points, optionManager) {
         this._layer = layer;
 
         this._points = [];
@@ -43,8 +43,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
             this.addPoints(points);
         }
 
-        this._heatmapCanvas = new HeatmapCanvas(TILE_SIZE[0], TILE_SIZE[1], options);
-        this.options = this._heatmapCanvas.options;
+        this._heatmapCanvas = new HeatmapCanvas(TILE_SIZE[0], TILE_SIZE[1], optionManager);
     };
 
     /**

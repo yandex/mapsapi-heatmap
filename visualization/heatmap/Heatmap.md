@@ -26,7 +26,8 @@ addPoints(points)
 
 **points**: Array, Массив точек [[x1, y1], [x2, y2], ...].
 
-**Returns**: Heatmap.
+**Returns**: Heatmap, Добавляет точки, которые будут нанесены на карту.
+
 
 removePoints(points) 
 -----------------------------
@@ -36,7 +37,8 @@ removePoints(points)
 
 **points**: Array, Массив точек [[x1, y1], [x2, y2], ...].
 
-**Returns**: Heatmap.
+**Returns**: Heatmap, Удаляет точки, которые не должны быть отображены на карте.
+
 
 setMap(map) 
 -----------------------------
@@ -46,11 +48,14 @@ setMap(map)
 
 **map**: Map, Инстанция ymaps.Map, на которую будет добавлен слой тепловой карты.
 
-**Returns**: Heatmap.
+**Returns**: Heatmap, Устанавливает карту, на которой должна отобразиться тепловая карта.
 
-_onOptionsChange() 
+
+_setupOptionMonitor() 
 -----------------------------
-Обработчик изменений опций тепловой карты.
+Устанавливает монитор на опции тепловой карты.
+
+**Returns**: Monitor, this._optionMonitor Монитор опций.
 
 
 _getIndexOfPoint(point, index) 
@@ -68,4 +73,4 @@ _createLayer()
 -----------------------------
 Создание слоя, в котором будет размещена тепловая карта.
 
-**Returns**: Heatmap.
+**Returns**: Heatmap, Создание слоя, в котором будет размещена тепловая карта.
