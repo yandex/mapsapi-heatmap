@@ -1,6 +1,9 @@
 /**
- * @fileOverview Модуль для отрисовки тепловой карты.
- * Позволяет получить карту в формате dataURL.
+ * Модуль отрисовки тепловой карты на canvas'e. Позволяет получить карту в формате dataURL.
+ * @module visualization.heatmap.component.Canvas
+ * @requires option.Manager
+ *
+ * @author Morozov Andrew <alt-j@yandex-team.ru>
  */
 ymaps.modules.define('visualization.heatmap.component.Canvas', [
     'option.Manager'
@@ -9,7 +12,8 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     OptionManager
 ) {
     /**
-     * Настройки карты по умолчанию.
+     * @constant DEFAULT_OPTIONS
+     * @description Настройки карты по умолчанию.
      */
     var DEFAULT_OPTIONS = {
         opacity: 0.75,
@@ -24,7 +28,9 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     };
 
     /**
-     * Конструктор модуля отрисовки тепловой карты.
+     * @public
+     * @function Canvas
+     * @description Конструктор модуля отрисовки тепловой карты.
      *
      * @param {Number} width Ширина карты.
      * @param {Number} height Высота карты.
@@ -41,18 +47,17 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
 
         this._context = this._canvas.getContext('2d');
 
-        this._points = [];
-
         this.options = new OptionManager(DEFAULT_OPTIONS);
         this.options.set(options);
 
-        var onOptionsChange = this._onOptionsChange.bind(this);
-        this.options.events.add('change', onOptionsChange);
-        onOptionsChange();
+        this.options.events.add('change', this._onOptionsChange.bind(this));
+        this._onOptionsChange();
     };
 
     /**
-     * Получение карты в виде dataURL.
+     * @public
+     * @function getBrushRadius
+     * @description Получение размера кисти, которая используется для отрисовки точек.
      *
      * @returns {Number} margin.
      */
@@ -61,30 +66,23 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     };
 
     /**
-     * Установка точек, которые будут нанесены на карту.
+     * @public
+     * @function getDataURLHeatmap
+     * @description Получение карты в виде dataURL с нанесенными точками.
      *
      * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
-     * @returns {Canvas}
-     */
-    Canvas.prototype.setPoints = function (points) {
-        this._points = JSON.parse(JSON.stringify(points));
-
-        return this;
-    };
-
-    /**
-     * Получение карты в виде dataURL.
-     *
      * @returns {String} dataURL.
      */
-    Canvas.prototype.getDataURL = function () {
-        this._drawCanvas();
+    Canvas.prototype.getDataURLHeatmap = function (points) {
+        this._drawHeatmap(points || []);
 
         return this._canvas.toDataURL();
     };
 
     /**
-     * Обработчик изменений опций тепловой карты.
+     * @private
+     * @function _onOptionsChange
+     * @description Обработчик изменений опций тепловой карты.
      */
     Canvas.prototype._onOptionsChange = function () {
         this._pointImage = this._createPointImage();
@@ -92,7 +90,9 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     };
 
     /**
-     * Создание тени круга, которым будут нарисованы точки.
+     * @private
+     * @function _createPointImage
+     * @description Создание тени круга, которым будут нарисованы точки.
      *
      * @returns {HTMLElement} pointImage Канвас с отрисованной тенью круга.
      */
@@ -118,7 +118,9 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     };
 
     /**
-     * Создание 256x1 градиента, которым будет раскрашена карта.
+     * @private
+     * @function _createGradient
+     * @description Создание 256x1 градиента, которым будет раскрашена карта.
      *
      * @returns {Array} [r1, g1, b1, a1, r2, ...].
      */
@@ -144,18 +146,20 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     };
 
     /**
-     * Отрисовка тепловой карты.
+     * @private
+     * @function _drawHeatmap
+     * @description Отрисовка тепловой карты.
      *
      * @returns {Canvas}
      */
-    Canvas.prototype._drawCanvas = function () {
+    Canvas.prototype._drawHeatmap = function (points) {
         var context = this._context,
             radius = this.getBrushRadius();
 
         context.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-        for (var i = 0, length = this._points.length, point; i < length; i++) {
-            point = this._points[i];
+        for (var i = 0, length = points.length, point; i < length; i++) {
+            point = points[i];
             context.drawImage(this._pointImage, point[0] - radius, point[1] - radius);
         }
 
@@ -167,7 +171,9 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     };
 
     /**
-     * Раскрашивание пикселей карты.
+     * @private
+     * @function _colorize
+     * @description Раскрашивание пикселей карты.
      *
      * @param {Array} pixels Бесцветная тепловая карта [r1, g1, b1, a1, r2, ...].
      * @param {Array} gradient Градиент [r1, g1, b1, a1, r2, ...].

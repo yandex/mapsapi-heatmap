@@ -1,5 +1,11 @@
 /**
- * @fileOverview Модуль, позволяющий генерировать тайлы для тепловой карты.
+ * Модуль для генерации тайлов тепловой карты.
+ * @module visualization.heatmap.component.TileUrlsGenerator
+ * @requires util.math.areEqual
+ * @requires projection.wgs84Mercator
+ * @requires visualization.heatmap.component.Canvas
+ *
+ * @author Morozov Andrew <alt-j@yandex-team.ru>
  */
 ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
     'util.math.areEqual',
@@ -17,7 +23,9 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
     var TILE_SIZE = [256, 256];
 
     /**
-     * Конструктов генератора url тайлов тепловой карты.
+     * @public
+     * @function TileUrlsGenerator
+     * @description Конструктов генератора url тайлов тепловой карты.
      *
      * @param {Layer} layer Слой тепловой карты.
      * @param {Array} points Массив точек в географический координатах.
@@ -30,9 +38,9 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
     var TileUrlsGenerator = function (layer, points, options) {
         this._layer = layer;
 
-        this._points = JSON.parse(JSON.stringify(points || []));
-        for (var i = 0, length = this._points.length; i < length; i++) {
-            this._points[i] = projection.toGlobalPixels(this._points[i], 0);
+        this._points = [];
+        if (points) {
+            this.addPoints(points);
         }
 
         this._heatmapCanvas = new HeatmapCanvas(TILE_SIZE[0], TILE_SIZE[1], options);
@@ -40,54 +48,44 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
     };
 
     /**
-     * Получение позиции точки.
+     * @public
+     * @function addPoints
+     * @description Добавляет точки, которые будут нанесены на карту.
      *
-     * @param {Array} point Точка.
-     * @param {Number} index Индекс данной точки внутри this._points.
-     */
-    TileUrlsGenerator.prototype.getIndexOfPoint = function (point) {
-        point = projection.toGlobalPixels(point, 0);
-        for (var i = 0, length = this._points.length; i < length; i++) {
-            if (areEqual(this._points[i], point)) {
-                return i;
-            }
-        }
-        return -1;
-    };
-
-    /**
-     * Добавления новой точки.
-     *
-     * @param {Number} index Позиция (внутри this._points), на которую необходимо добавить точку.
-     * @param {Array} point Точка.
+     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
      * @returns {TileUrlsGenerator}
      */
-    TileUrlsGenerator.prototype.addPointToIndex = function (index, point) {
-        point = projection.toGlobalPixels(point, 0);
-        if (index || index === 0) {
-            this._points[index] = point;
-        } else {
+    TileUrlsGenerator.prototype.addPoints = function (points) {
+        for (var i = 0, length = points.length, point; i < length; i++) {
+            point = projection.toGlobalPixels(points[i], 0);
             this._points.push(point);
         }
         return this;
     };
 
     /**
-     * Удаление точки.
+     * @public
+     * @function removePoints
+     * @description Удаляет точки, которые не должны быть отображены на карте.
      *
-     * @param {Number} index Позиция (внутри this._points), где находится точка,
-     * которую надо удалить.
+     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
      * @returns {TileUrlsGenerator}
      */
-    TileUrlsGenerator.prototype.removePointFromIndex = function (index) {
-        if (this._points[index]) {
-            this._points.splice(index, 1);
+    TileUrlsGenerator.prototype.removePoints = function (points) {
+        for (var i = 0, length = points.length, index; i < length; i++) {
+            index = this._getIndexOfPoint(points[i]);
+            while (index !== -1) {
+                this._points.splice(index, 1);
+                index = this._getIndexOfPoint(points[i]);
+            }
         }
         return this;
     };
 
     /**
-     * Возвращает URL тайла по его номеру и уровню масштабирования.
+     * @public
+     * @function getTileUrl
+     * @description Возвращает URL тайла по его номеру и уровню масштабирования.
      *
      * @param {Array} tileNumber Номер тайла [x, y].
      * @param {Number} zoom Зум тайла.
@@ -120,13 +118,32 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
                 ]);
             }
         }
-        this._heatmapCanvas.setPoints(points);
 
-        return this._heatmapCanvas.getDataURL();
+        return this._heatmapCanvas.getDataURLHeatmap(points);
     };
 
     /**
-     * Проверка попадаения точки в границы карты.
+     * @private
+     * @function _getIndexOfPoint
+     * @description Получение позиции точки.
+     *
+     * @param {Array} point Точка в географических координатах.
+     * @param {Number} index Индекс данной точки внутри this._points.
+     */
+    TileUrlsGenerator.prototype._getIndexOfPoint = function (point) {
+        point = projection.toGlobalPixels(point, 0);
+        for (var i = 0, length = this._points.length; i < length; i++) {
+            if (areEqual(this._points[i], point)) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    /**
+     * @private
+     * @function _isPointInBounds
+     * @description Проверка попадаения точки в границы карты.
      *
      * @param {Array} point Точка point[0] = x, point[1] = y.
      * @param {Array} bounds Область, в которую попадание проверяется.

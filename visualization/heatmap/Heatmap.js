@@ -1,5 +1,12 @@
 /**
- * @fileOverview Модуль, позволяющий наносить слой тепловой карты.
+ * Модуль для нанесения слоя тепловой карты.
+ * @module visualization.Heatmap
+ * @requires util.math.areEqual
+ * @requires option.Manage
+ * @requires Layer
+ * @requires visualization.heatmap.component.TileUrlsGenerator
+ *
+ * @author Morozov Andrew <alt-j@yandex-team.ru>
  */
 ymaps.modules.define('visualization.Heatmap', [
     'util.math.areEqual',
@@ -14,7 +21,9 @@ ymaps.modules.define('visualization.Heatmap', [
     HeatmapTileUrlsGenerator
 ) {
     /**
-     * Конструктор тепловой карты.
+     * @public
+     * @function Heatmap
+     * @description Конструктор тепловой карты.
      *
      * @param {Array} points Массив точек в географический координатах.
      * @param {Object} options Объект с опциями отображения тепловой карты:
@@ -24,18 +33,67 @@ ymaps.modules.define('visualization.Heatmap', [
      *  pointGradient - объект задающий градиент.
      */
     var Heatmap = function (points, options) {
-        this._points = JSON.parse(JSON.stringify(points));
+        // Поскольку слой будет создан только после setMap, до установки карты
+        // точки будут хранится во временном хранилище.
+        this._temporary = { points: [] };
+        if (points) {
+            this.addPoints(points);
+        }
 
         this.options = new OptionManager(options);
         this.options.events.add('change', this._onOptionsChange.bind(this));
+    };
 
+    /**
+     * @public
+     * @function addPoints
+     * @description Добавляет точки, которые будут нанесены на карту.
+     *
+     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
+     * @returns {Heatmap}
+     */
+    Heatmap.prototype.addPoints = function (points) {
+        if (this._tileUrlsGenerator) {
+            this._tileUrlsGenerator.addPoints(points);
+            this._layer.update();
+        } else {
+            for (var i = 0, length = points.length; i < length; i++) {
+                this._temporary.points.push(points[i]);
+            }
+        }
         return this;
     };
 
     /**
-     * Задает карту, на которой должна отобразиться тепловая карта.
+     * @public
+     * @function removePoints
+     * @description Удаляет точки, которые не должны быть отображены на карте.
      *
-     * @param {Map} map.
+     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
+     * @returns {Heatmap}
+     */
+    Heatmap.prototype.removePoints = function (points) {
+        if (this._tileUrlsGenerator) {
+            this._tileUrlsGenerator.removePoints(points);
+            this._layer.update();
+        } else {
+            for (var i = 0, length = points.length, index; i < length; i++) {
+                index = this._getIndexOfPoint(points[i]);
+                while (index !== -1) {
+                    this._temporary.points.splice(index, 1);
+                    index = this._getIndexOfPoint(points[i]);
+                }
+            }
+        }
+        return this;
+    };
+
+    /**
+     * @public
+     * @function setMap
+     * @description Устанавливает карту, на которой должна отобразиться тепловая карта.
+     *
+     * @param {Map} map Инстанция ymaps.Map, на которую будет добавлен слой тепловой карты.
      * @returns {Heatmap}
      */
     Heatmap.prototype.setMap = function (map) {
@@ -52,67 +110,12 @@ ymaps.modules.define('visualization.Heatmap', [
     };
 
     /**
-     * Получение позиции точки.
-     *
-     * @param {Array} point Точка.
-     * @param {Number} index Индекс данной точки внутри this._points.
-     */
-    Heatmap.prototype.getIndexOfPoint = function (point) {
-        for (var i = 0, length = this._points.length; i < length; i++) {
-            if (areEqual(this._points[i], point)) {
-                return i;
-            }
-        }
-        return -1;
-    };
-
-    /**
-     * Добавляет точки, которые будут нанесены на карту.
-     *
-     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
-     * @returns {Heatmap}
-     */
-    Heatmap.prototype.addPoints = function (points) {
-        for (var i = 0, length = points.length, index; i < length; i++) {
-            index = this._points.push(points[i]) - 1;
-            if (this._layer) {
-                this._tileUrlsGenerator.addPointToIndex(index, points[i]);
-            }
-        }
-        if (this._layer) {
-            this._layer.update();
-        }
-        return this;
-    };
-
-    /**
-     * Удаляет точки, которые не должны быть отображены на карте.
-     *
-     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
-     * @returns {Heatmap}
-     */
-    Heatmap.prototype.removePoints = function (points) {
-        for (var i = 0, length = points.length, index; i < length; i++) {
-            index = this.getIndexOfPoint(points[i]);
-            while (index !== -1) {
-                if (this._layer) {
-                    this._tileUrlsGenerator.removePointFromIndex(index);
-                }
-                this._points.splice(index, 1);
-                index = this.getIndexOfPoint(points[i]);
-            }
-        }
-        if (this._layer) {
-            this._layer.update();
-        }
-        return this;
-    };
-
-    /**
-     * Обработчик изменений опций тепловой карты.
+     * @private
+     * @function _onOptionsChange
+     * @description Обработчик изменений опций тепловой карты.
      */
     Heatmap.prototype._onOptionsChange = function () {
-        if (this._layer) {
+        if (this._tileUrlsGenerator) {
             var options = this.options.getAll();
             this._tileUrlsGenerator.options.set(options);
 
@@ -121,7 +124,29 @@ ymaps.modules.define('visualization.Heatmap', [
     };
 
     /**
-     * Создание слоя, в котором будет размещена тепловая карта.
+     * @private
+     * @function _getIndexOfPoint
+     * @description Получение позиции точки во временном хранилище.
+     *
+     * @param {Array} point Точка.
+     * @param {Number} index Индекс данной точки внутри this._temporary.points.
+     */
+    Heatmap.prototype._getIndexOfPoint = function (point) {
+        if (!this._temporary || !this._temporary.points) {
+            return -1;
+        }
+        for (var i = 0, length = this._temporary.points.length; i < length; i++) {
+            if (areEqual(this._temporary.points[i], point)) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    /**
+     * @private
+     * @function _createLayer
+     * @description Создание слоя, в котором будет размещена тепловая карта.
      *
      * @returns {Heatmap}
      */
@@ -129,12 +154,14 @@ ymaps.modules.define('visualization.Heatmap', [
         this._layer = new Layer('', { tileTransparent: true });
         this._tileUrlsGenerator = new HeatmapTileUrlsGenerator(
             this._layer,
-            this._points,
+            this._temporary.points,
             this.options.getAll()
         );
         this._layer.getTileUrl = this._tileUrlsGenerator
             .getTileUrl
             .bind(this._tileUrlsGenerator);
+
+        this._temporary = null;
 
         return this;
     };
