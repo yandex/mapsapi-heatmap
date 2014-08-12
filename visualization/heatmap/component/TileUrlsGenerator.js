@@ -22,22 +22,18 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @function TileUrlsGenerator
      * @description Конструктор генератора url тайлов тепловой карты.
      *
-     * @param {Layer} layer Слой тепловой карты.
+     * @param {Object} projection Слой тепловой карты.
      * @param {Array} points Массив точек в географических координатах.
      */
-    var TileUrlsGenerator = function (layer, points) {
+    var TileUrlsGenerator = function (projection, points) {
         this._canvas = new HeatmapCanvas(TILE_SIZE);
 
         this.options = new OptionManager({});
         this._canvas.options.setParent(this.options);
 
-        this._layer = layer;
-        this._projection = this._layer.options.get('projection');
+        this._projection = projection;
 
-        this._points = [];
-        if (points) {
-            this.setPoints(points);
-        }
+        this.setPoints(points || []);
     };
 
     /**
@@ -51,15 +47,19 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
     TileUrlsGenerator.prototype.setPoints = function (points) {
         this._points = [];
 
-        var maxWeight = 1;
+        var weights = [];
         for (var i = 0, length = points.length; i < length; i++) {
             this._points.push({
                 coordinates: this._projection.toGlobalPixels(points[i].coordinates, 0),
                 weight: points[i].weight
             });
-            maxWeight = Math.max(maxWeight, points[i].weight);
+            weights.push(points[i].weight);
         }
-        this._canvas.options.set('maxWeight', maxWeight);
+
+        weights = weights.sort();
+        var mediana = weights[Math.floor(weights.length / 2)];
+
+        this._canvas.options.set('medianaOfWeights', mediana);
 
         return this;
     };
@@ -92,28 +92,28 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @returns {String} dataUrl.
      */
     TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
-        var tileBounds = [[
-                tileNumber[0] * TILE_SIZE[0],
-                tileNumber[1] * TILE_SIZE[1]
+        if (this._canvas.options.get('pointRadiusFactor') != zoom) {
+            this._canvas.options.set('pointRadiusFactor', zoom);
+        }
+        var zoomFactor = Math.pow(2, zoom),
+
+            tileBounds = [[
+                tileNumber[0] * TILE_SIZE[0] / zoomFactor,
+                tileNumber[1] * TILE_SIZE[1] / zoomFactor
             ], [
-                (tileNumber[0] + 1) * TILE_SIZE[0],
-                (tileNumber[1] + 1) * TILE_SIZE[1]
+                (tileNumber[0] + 1) * TILE_SIZE[0] / zoomFactor,
+                (tileNumber[1] + 1) * TILE_SIZE[1] / zoomFactor
             ]],
             tileMargin = this._canvas.getBrushRadius(),
 
-            zoomFactor = Math.pow(2, zoom),
             points = [];
-
         for (var i = 0, length = this._points.length, point; i < length; i++) {
-            point = [
-                zoomFactor * this._points[i].coordinates[0],
-                zoomFactor * this._points[i].coordinates[1]
-            ];
+            point = this._points[i].coordinates;
             if (this._isPointInBounds(point, tileBounds, tileMargin)) {
                 points.push({
                     coordinates: [
-                        point[0] - tileBounds[0][0],
-                        point[1] - tileBounds[0][1]
+                        (point[0] - tileBounds[0][0]) * zoomFactor,
+                        (point[1] - tileBounds[0][1]) * zoomFactor
                     ],
                     weight: this._points[i].weight
                 });
@@ -133,7 +133,6 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
         this._canvas = null;
 
         this._projection = null;
-        this._layer = null;
     };
 
     /**

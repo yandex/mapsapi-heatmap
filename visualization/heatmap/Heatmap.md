@@ -12,8 +12,10 @@ Heatmap(data, options)
 **data**: Object, Источник геообъектов.
 
 **options**: Object, Объект с опциями отображения тепловой карты:
- pointRadius - радиус точки;
+ pointRadius - радиус точки для 1-го зума (на n'ом zoom'е будет равен pointRadius * zoom);
  opacity - прозрачность карты;
+ medianaOfGradient - медиана цвета, которая должна быть среди точек на карте
+ (значение от 0 до 1 - уровень в gradient'е).
  gradient - объект, задающий градиент.
 
 

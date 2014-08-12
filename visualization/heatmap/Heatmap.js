@@ -28,8 +28,10 @@ ymaps.modules.define('visualization.Heatmap', [
      *
      * @param {Object} data Источник геообъектов.
      * @param {Object} options Объект с опциями отображения тепловой карты:
-     *  pointRadius - радиус точки;
+     *  pointRadius - радиус точки для 1-го зума (на n'ом zoom'е будет равен pointRadius * zoom);
      *  opacity - прозрачность карты;
+     *  medianaOfGradient - медиана цвета, которая должна быть среди точек на карте
+     *  (значение от 0 до 1 - уровень в gradient'е).
      *  gradient - объект, задающий градиент.
      */
     var Heatmap = function (data, options) {
@@ -117,7 +119,7 @@ ymaps.modules.define('visualization.Heatmap', [
             points = this._convertJsonFeatureToPoint(data);
         } else if (this._isJsonFeatureCollection(data)) {
             for (var i = 0, l = data.features.length; i < l; i++) {
-                points = points.concat(this._dataToPointsArray(data.features[i]));
+                points = points.concat(this._convertDataToPointsArray(data.features[i]));
             }
         } else {
             data = [].concat(data);
@@ -135,7 +137,7 @@ ymaps.modules.define('visualization.Heatmap', [
                     while ((geoObject = iterator.getNext()) != iterator.STOP_ITERATION) {
                         // Выполняем рекурсивно на случай вложенных коллекций.
                         points = points.concat(
-                            this._dataToPointsArray(geoObject)
+                            this._convertDataToPointsArray(geoObject)
                         );
                     }
                 }
@@ -324,10 +326,7 @@ ymaps.modules.define('visualization.Heatmap', [
      * @returns {Layer} Слой тепловой карты.
      */
     Heatmap.prototype._setupLayer = function () {
-        this._layer = new Layer('', {
-            projection: this._map.options.get('projection'),
-            tileTransparent: true
-        });
+        this._layer = new Layer('', { tileTransparent: true });
 
         this._setupTileUrlsGenerator();
         this._setupOptionMonitor();
@@ -358,7 +357,7 @@ ymaps.modules.define('visualization.Heatmap', [
      */
     Heatmap.prototype._setupTileUrlsGenerator = function () {
         this._tileUrlsGenerator = new TileUrlsGenerator(
-            this._layer,
+            this._map.options.get('projection'),
             this._unprocessedPoints
         );
         this._unprocessedPoints = null;
@@ -389,11 +388,7 @@ ymaps.modules.define('visualization.Heatmap', [
     Heatmap.prototype._setupOptionMonitor = function () {
         this._optionMonitor = new Monitor(this.options);
 
-        return this._optionMonitor.add(
-            ['pointRadius', 'opacity', 'gradient'],
-            this._refresh,
-            this
-        );
+        return this._optionMonitor.add(['pointRadius', 'opacity', 'gradient'], this._refresh, this);
     };
 
     /**

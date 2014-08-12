@@ -17,17 +17,21 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @description Настройки карты по умолчанию.
      */
     var DEFAULT_OPTIONS = {
-        // Радиус точки.
-        pointRadius: 15,
+        // Минимальный радиус точки.
+        pointRadius: 1,
+        // Множитель для радиуса точки. Рассчитывается программно.
+        pointRadiusFactor: 1,
         // Прозрачность слоя карты.
-        opacity: 0.85,
-        // Максимальный вес точки.
-        maxWeight: 5,
+        opacity: 0.6,
+        // Медиана цвета точек.
+        medianaOfGradient: 0.2,
+        // Медиана весов точек. Рассчитывается программно.
+        medianaOfWeights: 1,
         // Градиент, которым будут раскрашены точки.
         gradient: {
-            0.1: 'lime',
-            0.5: 'rgba(255, 255, 0, 1)',
-            0.8: 'rgba(234, 72, 58, 1)',
+            0.1: 'rgba(128, 255, 0, 1)',
+            0.2: 'rgba(255, 255, 0, 1)',
+            0.7: 'rgba(234, 72, 58, 1)',
             1.0: 'rgba(162, 36, 25, 1)'
         }
     };
@@ -60,7 +64,8 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @returns {Number} margin.
      */
     Canvas.prototype.getBrushRadius = function () {
-        return this.options.get('pointRadius', DEFAULT_OPTIONS.pointRadius);
+        return this.options.get('pointRadius', DEFAULT_OPTIONS.pointRadius) *
+            this.options.get('pointRadiusFactor', DEFAULT_OPTIONS.pointRadiusFactor);
     };
 
     /**
@@ -98,7 +103,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
         this._optionMonitor = new Monitor(this.options);
 
         return this._optionMonitor.add(
-            ['pointRadius', 'opacity', 'gradient'],
+            ['pointRadius', 'gradient', 'pointRadiusFactor'],
             this._setupDrawTools,
             this
         );
@@ -199,12 +204,16 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     Canvas.prototype._drawHeatmap = function (points) {
         var context = this._context,
             radius = this.getBrushRadius(),
-            maxWeight = Math.max(this.options.get('maxWeight'), DEFAULT_OPTIONS.maxWeight);
+            // Чтобы избежать полностью красной (последний уровень градиента) карты,
+            // медиана прозрачности точек не должна превышать 0.2-0.3.
+            weightFactor = this.options.get('medianaOfGradient', DEFAULT_OPTIONS.medianaOfGradient) /
+                this.options.get('medianaOfWeights', DEFAULT_OPTIONS.medianaOfWeights);
 
         context.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-        for (var i = 0, length = points.length; i < length; i++) {
-            context.globalAlpha = points[i].weight / maxWeight;
+        for (var i = 0, length = points.length, opacity; i < length; i++) {
+            opacity = points[i].weight * weightFactor;
+            context.globalAlpha = opacity < 1 ? opacity : 1;
             context.drawImage(
                 this._brush,
                 points[i].coordinates[0] - radius,
@@ -228,7 +237,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @param {Number[]} gradient Градиент [r1, g1, b1, a1, r2, ...].
      */
     Canvas.prototype._colorize = function (pixels) {
-        var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity);
+        var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity) * 255;
         for (var i = 3, length = pixels.length, j; i < length; i += 4) {
             // Получаем цвет в градиенте, по значению прозрачночти.
             j = 4 * pixels[i];
@@ -237,7 +246,10 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
                 pixels[i - 2] = this._gradient[j + 1];
                 pixels[i - 1] = this._gradient[j + 2];
             }
-            pixels[i] = opacity * pixels[i];
+            if (pixels[i]) {
+                // Устанавливаем прозрачность слоя.
+                pixels[i] = opacity;
+            }
         }
     };
 

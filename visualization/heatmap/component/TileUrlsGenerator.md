@@ -3,13 +3,13 @@ TileUrlsGenerator
 
 Модуль для генерации тайлов тепловой карты.
 
-TileUrlsGenerator(layer, points) 
+TileUrlsGenerator(projection, points) 
 -----------------------------
 Конструктор генератора url тайлов тепловой карты.
 
 **Parameters**
 
-**layer**: Layer, Слой тепловой карты.
+**projection**: Object, Слой тепловой карты.
 
 **points**: Array, Массив точек в географических координатах.
 
