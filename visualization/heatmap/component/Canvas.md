@@ -9,7 +9,7 @@ Canvas(size)
 
 **Parameters**
 
-**size**: Array, Размер карты: [width, height].
+**size**: Array.&lt;Number&gt;, Размер карты: [width, height].
 
 
 getBrushRadius() 
@@ -55,11 +55,9 @@ _destroyDrawTools()
 Уничтожает внутренние опции тепловой карты.
 
 
-_createPointImage() 
+_createBrush() 
 -----------------------------
 Создание кисти, которой будут нарисованы точки.
-Создается круг радиуса pointRadius и с тенью размера pointBlur,
-после чего сам круг смещается из видимой области, оставляя только тень.
 
 **Returns**: HTMLElement, brush Канвас с отрисованной тенью круга.
 
@@ -81,6 +79,6 @@ _colorize(pixels, gradient)
 
 **Parameters**
 
-**pixels**: Array, Бесцветная тепловая карта [r1, g1, b1, a1, r2, ...].
+**pixels**: Array.&lt;Number&gt;, Бесцветная тепловая карта [r1, g1, b1, a1, r2, ...].
 
-**gradient**: Array, Градиент [r1, g1, b1, a1, r2, ...].
+**gradient**: Array.&lt;Number&gt;, Градиент [r1, g1, b1, a1, r2, ...].

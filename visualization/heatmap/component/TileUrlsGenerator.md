@@ -14,25 +14,21 @@ TileUrlsGenerator(layer, points)
 **points**: Array, Массив точек в географических координатах.
 
 
-addPoints(points) 
+setPoints(points) 
 -----------------------------
-Добавляет точки, которые будут нанесены на карту.
+Устанавливает точки, которые будут нанесены на карту.
 
 **Parameters**
 
 **points**: Array, Массив точек [[x1, y1], [x2, y2], ...].
 
-**Returns**: TileUrlsGenerator, Добавляет точки, которые будут нанесены на карту.
+**Returns**: TileUrlsGenerator, Устанавливает точки, которые будут нанесены на карту.
 
-removePoints(points) 
+getPoints() 
 -----------------------------
-Удаляет точки, которые не должны быть отображены на карте.
+Отдает точки в географических координатах.
 
-**Parameters**
-
-**points**: Array, Массив точек [[x1, y1], [x2, y2], ...].
-
-**Returns**: TileUrlsGenerator, Удаляет точки, которые не должны быть отображены на карте.
+**Returns**: Array, points Массив точек [[x1, y1], [x2, y2], ...].
 
 getTileUrl(tileNumber, zoom) 
 -----------------------------
@@ -40,7 +36,7 @@ getTileUrl(tileNumber, zoom)
 
 **Parameters**
 
-**tileNumber**: Array, Номер тайла [x, y].
+**tileNumber**: Array.&lt;Number&gt;, Номер тайла [x, y].
 
 **zoom**: Number, Зум тайла.
 
@@ -51,24 +47,13 @@ destroy()
 Уничтожает внутренние данные генератора.
 
 
-_getIndexOfPoint(point, index) 
------------------------------
-Получение позиции точки.
-
-**Parameters**
-
-**point**: Array, Точка в географических координатах.
-
-**index**: Number, Индекс данной точки внутри this._points.
-
-
 _isPointInBounds(point, bounds, margin) 
 -----------------------------
 Проверка попадаения точки в границы карты.
 
 **Parameters**
 
-**point**: Array, Точка point[0] = x, point[1] = y.
+**point**: Array.&lt;Number&gt;, Точка в географических координатах.
 
 **bounds**: Array, Область, в которую попадание проверяется.
 

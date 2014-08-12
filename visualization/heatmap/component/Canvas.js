@@ -17,12 +17,16 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @description Настройки карты по умолчанию.
      */
     var DEFAULT_OPTIONS = {
-        opacity: 0.75,
-        pointRadius: 5,
-        pointBlur: 15,
+        // Радиус точки.
+        pointRadius: 15,
+        // Прозрачность слоя карты.
+        opacity: 0.85,
+        // Максимальный вес точки.
+        maxWeight: 5,
+        // Градиент, которым будут раскрашены точки.
         gradient: {
-            0.1: 'rgba(128, 255, 0, 1)',
-            0.4: 'rgba(255, 255, 0, 1)',
+            0.1: 'lime',
+            0.5: 'rgba(255, 255, 0, 1)',
             0.8: 'rgba(234, 72, 58, 1)',
             1.0: 'rgba(162, 36, 25, 1)'
         }
@@ -33,7 +37,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @function Canvas
      * @description Конструктор модуля отрисовки тепловой карты.
      *
-     * @param {Array} size Размер карты: [width, height].
+     * @param {Number[]} size Размер карты: [width, height].
      */
     var Canvas = function (size) {
         this._canvas = document.createElement('canvas');
@@ -56,8 +60,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @returns {Number} margin.
      */
     Canvas.prototype.getBrushRadius = function () {
-        return this.options.get('pointRadius', DEFAULT_OPTIONS.pointRadius) +
-            this.options.get('pointBlur', DEFAULT_OPTIONS.pointBlur);
+        return this.options.get('pointRadius', DEFAULT_OPTIONS.pointRadius);
     };
 
     /**
@@ -82,12 +85,6 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     Canvas.prototype.destroy = function () {
         this._destoryOptionMonitor();
         this._destroyDrawTools();
-
-        this.options.unsetAll();
-        this.options = {};
-
-        this._context = {};
-        this._canvas = {};
     };
 
     /**
@@ -101,7 +98,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
         this._optionMonitor = new Monitor(this.options);
 
         return this._optionMonitor.add(
-            ['pointRadius', 'pointBlur', 'opacity', 'gradient'],
+            ['pointRadius', 'opacity', 'gradient'],
             this._setupDrawTools,
             this
         );
@@ -137,43 +134,29 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @description Уничтожает внутренние опции тепловой карты.
      */
     Canvas.prototype._destroyDrawTools = function () {
-        this._brush = {};
-        this._gradient = {};
+        this._brush = null;
+        this._gradient = null;
     };
 
     /**
      * @private
-     * @function _createPointImage
+     * @function _createBrush
      * @description Создание кисти, которой будут нарисованы точки.
-     * Создается круг радиуса pointRadius и с тенью размера pointBlur,
-     * после чего сам круг смещается из видимой области, оставляя только тень.
      *
      * @returns {HTMLElement} brush Канвас с отрисованной тенью круга.
      */
     Canvas.prototype._createBrush = function () {
         var brush = document.createElement('canvas'),
             context = brush.getContext('2d'),
-            radius = this.getBrushRadius();
 
-        brush.width = brush.height = 2 * radius;
+            radius = this.getBrushRadius(),
+            gradient = context.createRadialGradient(radius, radius, 0, radius, radius, radius);
 
-        // Тень смещаем в соседний квадрат.
-        context.shadowOffsetX = context.shadowOffsetY = 2 * radius;
-        context.shadowBlur = this.options.get('pointBlur', DEFAULT_OPTIONS.pointBlur);
-        context.shadowColor = 'black';
-
-        context.beginPath();
-        // Круг рисуем вне зоны видимости, фактически от круга оставляем только тень.
-        context.arc(
-            -1 * radius,
-            -1 * radius,
-            this.options.get('pointRadius', DEFAULT_OPTIONS.pointRadius),
-            0,
-            2 * Math.PI,
-            true
-        );
-        context.closePath();
-        context.fill();
+        gradient.addColorStop(0, 'rgba(0,0,0,1)');
+        gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, 2 * radius, 2 * radius);
 
         return brush;
     };
@@ -215,13 +198,18 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      */
     Canvas.prototype._drawHeatmap = function (points) {
         var context = this._context,
-            radius = this.getBrushRadius();
+            radius = this.getBrushRadius(),
+            maxWeight = Math.max(this.options.get('maxWeight'), DEFAULT_OPTIONS.maxWeight);
 
         context.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-        for (var i = 0, length = points.length, point; i < length; i++) {
-            point = points[i];
-            context.drawImage(this._brush, point[0] - radius, point[1] - radius);
+        for (var i = 0, length = points.length; i < length; i++) {
+            context.globalAlpha = points[i].weight / maxWeight;
+            context.drawImage(
+                this._brush,
+                points[i].coordinates[0] - radius,
+                points[i].coordinates[1] - radius
+            );
         }
 
         var heatmapImage = context.getImageData(0, 0, this._canvas.width, this._canvas.height);
@@ -236,8 +224,8 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @function _colorize
      * @description Раскрашивание пикселей карты.
      *
-     * @param {Array} pixels Бесцветная тепловая карта [r1, g1, b1, a1, r2, ...].
-     * @param {Array} gradient Градиент [r1, g1, b1, a1, r2, ...].
+     * @param {Number[]} pixels Бесцветная тепловая карта [r1, g1, b1, a1, r2, ...].
+     * @param {Number[]} gradient Градиент [r1, g1, b1, a1, r2, ...].
      */
     Canvas.prototype._colorize = function (pixels) {
         var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity);
