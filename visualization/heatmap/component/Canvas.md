@@ -3,21 +3,13 @@ Canvas
 
 Модуль отрисовки тепловой карты на canvas'e. Позволяет получить карту в формате dataURL.
 
-Canvas(width, height, optionManager) 
+Canvas(size) 
 -----------------------------
 Конструктор модуля отрисовки тепловой карты.
 
 **Parameters**
 
-**width**: Number, Ширина карты.
-
-**height**: Number, Высота карты.
-
-**optionManager**: option.Manager, Менеджер с опциями отображения тепловой карты:
- opacity - прозрачность карты;
- pointRadius - радиус точки;
- pointBlur - радиус размытия вокруг точки, на тепловой карте;
- pointGradient - объект задающий градиент.
+**size**: Array, Размер карты: [width, height].
 
 
 getBrushRadius() 
@@ -26,8 +18,7 @@ getBrushRadius()
 
 **Returns**: Number, margin.
 
-
-getDataURLHeatmap(points) 
+generateDataURLHeatmap(points) 
 -----------------------------
 Получение карты в виде dataURL с нанесенными точками.
 
@@ -37,27 +28,40 @@ getDataURLHeatmap(points)
 
 **Returns**: String, dataURL.
 
+destroy() 
+-----------------------------
+Уничтожает внутренние данные.
+
 
 _setupOptionMonitor() 
 -----------------------------
 Устанавливает монитор на опции тепловой карты.
 
-**Returns**: Monitor, this._optionMonitor Монитор опций.
+**Returns**: Monitor, Монитор опций.
 
-
-_refresh() 
+_destoryOptionMonitor() 
 -----------------------------
-Пересоздает внутренние опции тепловой карты.
+Уничтожает монитор опций.
 
-**Returns**: Canvas, Пересоздает внутренние опции тепловой карты.
+
+_setupDrawTools() 
+-----------------------------
+Устанавливает внутренние опции тепловой карты.
+
+**Returns**: Canvas, Устанавливает внутренние опции тепловой карты.
+
+_destroyDrawTools() 
+-----------------------------
+Уничтожает внутренние опции тепловой карты.
 
 
 _createPointImage() 
 -----------------------------
-Создание тени круга, которым будут нарисованы точки.
+Создание кисти, которой будут нарисованы точки.
+Создается круг радиуса pointRadius и с тенью размера pointBlur,
+после чего сам круг смещается из видимой области, оставляя только тень.
 
-**Returns**: HTMLElement, pointImage Канвас с отрисованной тенью круга.
-
+**Returns**: HTMLElement, brush Канвас с отрисованной тенью круга.
 
 _createGradient() 
 -----------------------------
@@ -65,13 +69,11 @@ _createGradient()
 
 **Returns**: Array, [r1, g1, b1, a1, r2, ...].
 
-
 _drawHeatmap() 
 -----------------------------
 Отрисовка тепловой карты.
 
 **Returns**: Canvas, Отрисовка тепловой карты.
-
 
 _colorize(pixels, gradient) 
 -----------------------------

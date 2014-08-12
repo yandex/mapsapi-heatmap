@@ -1,17 +1,15 @@
 /**
  * Модуль отрисовки тепловой карты на canvas'e. Позволяет получить карту в формате dataURL.
  * @module visualization.heatmap.component.Canvas
- * @requires util.extend
+ * @requires option.Manager
  * @requires Monitor
- *
- * @author Morozov Andrew <alt-j@yandex-team.ru>
  */
 ymaps.modules.define('visualization.heatmap.component.Canvas', [
-    'util.extend',
+    'option.Manager',
     'Monitor'
 ],  function (
     provide,
-    extend,
+    OptionManager,
     Monitor
 ) {
     /**
@@ -22,7 +20,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
         opacity: 0.75,
         pointRadius: 5,
         pointBlur: 15,
-        pointGradient: {
+        gradient: {
             0.1: 'rgba(128, 255, 0, 1)',
             0.4: 'rgba(255, 255, 0, 1)',
             0.8: 'rgba(234, 72, 58, 1)',
@@ -35,25 +33,18 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @function Canvas
      * @description Конструктор модуля отрисовки тепловой карты.
      *
-     * @param {Number} width Ширина карты.
-     * @param {Number} height Высота карты.
-     * @param {option.Manager} optionManager Менеджер с опциями отображения тепловой карты:
-     *  opacity - прозрачность карты;
-     *  pointRadius - радиус точки;
-     *  pointBlur - радиус размытия вокруг точки, на тепловой карте;
-     *  pointGradient - объект задающий градиент.
+     * @param {Array} size Размер карты: [width, height].
      */
-    var Canvas = function (width, height, optionManager) {
+    var Canvas = function (size) {
         this._canvas = document.createElement('canvas');
-        this._canvas.width = width;
-        this._canvas.height = height;
+        this._canvas.width = size[0];
+        this._canvas.height = size[1];
 
         this._context = this._canvas.getContext('2d');
 
-        var options = extend({}, DEFAULT_OPTIONS, optionManager.getAll());
-        this.options = optionManager.set(options);
+        this.options = new OptionManager({});
 
-        this._refresh();
+        this._setupDrawTools();
         this._setupOptionMonitor();
     };
 
@@ -65,21 +56,38 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @returns {Number} margin.
      */
     Canvas.prototype.getBrushRadius = function () {
-        return this.options.get('pointRadius') + this.options.get('pointBlur');
+        return this.options.get('pointRadius', DEFAULT_OPTIONS.pointRadius) +
+            this.options.get('pointBlur', DEFAULT_OPTIONS.pointBlur);
     };
 
     /**
      * @public
-     * @function getDataURLHeatmap
+     * @function generateDataURLHeatmap
      * @description Получение карты в виде dataURL с нанесенными точками.
      *
      * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
      * @returns {String} dataURL.
      */
-    Canvas.prototype.getDataURLHeatmap = function (points) {
+    Canvas.prototype.generateDataURLHeatmap = function (points) {
         this._drawHeatmap(points || []);
 
         return this._canvas.toDataURL();
+    };
+
+    /**
+     * @public
+     * @function destroy
+     * @description Уничтожает внутренние данные.
+     */
+    Canvas.prototype.destroy = function () {
+        this._destoryOptionMonitor();
+        this._destroyDrawTools();
+
+        this.options.unsetAll();
+        this.options = {};
+
+        this._context = {};
+        this._canvas = {};
     };
 
     /**
@@ -87,27 +95,37 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @function _setupOptionMonitor
      * @description Устанавливает монитор на опции тепловой карты.
      *
-     * @returns {Monitor} this._optionMonitor Монитор опций.
+     * @returns {Monitor} Монитор опций.
      */
     Canvas.prototype._setupOptionMonitor = function () {
         this._optionMonitor = new Monitor(this.options);
-        
-        return this._optionMonitor
-            .add('opacity', this._refresh, this)
-            .add('pointRadius', this._refresh, this)
-            .add('pointBlur', this._refresh, this)
-            .add('pointGradient', this._refresh, this);
+
+        return this._optionMonitor.add(
+            ['pointRadius', 'pointBlur', 'opacity', 'gradient'],
+            this._setupDrawTools,
+            this
+        );
     };
 
     /**
      * @private
-     * @function _refresh
-     * @description Пересоздает внутренние опции тепловой карты.
+     * @function _destoryOptionMonitor
+     * @description Уничтожает монитор опций.
+     */
+    Canvas.prototype._destoryOptionMonitor = function () {
+        this._optionMonitor.removeAll();
+        this._optionMonitor = {};
+    };
+
+    /**
+     * @private
+     * @function _setupDrawTools
+     * @description Устанавливает внутренние опции тепловой карты.
      *
      * @returns {Canvas}
      */
-    Canvas.prototype._refresh = function () {
-        this._pointImage = this._createPointImage();
+    Canvas.prototype._setupDrawTools = function () {
+        this._brush = this._createBrush();
         this._gradient = this._createGradient();
 
         return this;
@@ -115,30 +133,49 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
 
     /**
      * @private
-     * @function _createPointImage
-     * @description Создание тени круга, которым будут нарисованы точки.
-     *
-     * @returns {HTMLElement} pointImage Канвас с отрисованной тенью круга.
+     * @function _destroyDrawTools
+     * @description Уничтожает внутренние опции тепловой карты.
      */
-    Canvas.prototype._createPointImage = function () {
-        var pointImage = document.createElement('canvas'),
-            context = pointImage.getContext('2d'),
+    Canvas.prototype._destroyDrawTools = function () {
+        this._brush = {};
+        this._gradient = {};
+    };
+
+    /**
+     * @private
+     * @function _createPointImage
+     * @description Создание кисти, которой будут нарисованы точки.
+     * Создается круг радиуса pointRadius и с тенью размера pointBlur,
+     * после чего сам круг смещается из видимой области, оставляя только тень.
+     *
+     * @returns {HTMLElement} brush Канвас с отрисованной тенью круга.
+     */
+    Canvas.prototype._createBrush = function () {
+        var brush = document.createElement('canvas'),
+            context = brush.getContext('2d'),
             radius = this.getBrushRadius();
 
-        pointImage.width = pointImage.height = 2 * radius;
+        brush.width = brush.height = 2 * radius;
 
         // Тень смещаем в соседний квадрат.
         context.shadowOffsetX = context.shadowOffsetY = 2 * radius;
-        context.shadowBlur = this.options.get('pointBlur');
+        context.shadowBlur = this.options.get('pointBlur', DEFAULT_OPTIONS.pointBlur);
         context.shadowColor = 'black';
 
         context.beginPath();
         // Круг рисуем вне зоны видимости, фактически от круга оставляем только тень.
-        context.arc(-1 * radius, -1 * radius, this.options.get('pointRadius'), 0, 2 * Math.PI, true);
+        context.arc(
+            -1 * radius,
+            -1 * radius,
+            this.options.get('pointRadius', DEFAULT_OPTIONS.pointRadius),
+            0,
+            2 * Math.PI,
+            true
+        );
         context.closePath();
         context.fill();
 
-        return pointImage;
+        return brush;
     };
 
     /**
@@ -156,10 +193,10 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
         canvas.width = 1;
         canvas.height = 256;
 
-        var pointGradientOption = this.options.get('pointGradient');
-        for (var i in pointGradientOption) {
-            if (pointGradientOption.hasOwnProperty(i)) {
-                gradient.addColorStop(i, pointGradientOption[i]);
+        var gradientOption = this.options.get('gradient', DEFAULT_OPTIONS.gradient);
+        for (var i in gradientOption) {
+            if (gradientOption.hasOwnProperty(i)) {
+                gradient.addColorStop(i, gradientOption[i]);
             }
         }
 
@@ -184,7 +221,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
 
         for (var i = 0, length = points.length, point; i < length; i++) {
             point = points[i];
-            context.drawImage(this._pointImage, point[0] - radius, point[1] - radius);
+            context.drawImage(this._brush, point[0] - radius, point[1] - radius);
         }
 
         var heatmapImage = context.getImageData(0, 0, this._canvas.width, this._canvas.height);
@@ -203,7 +240,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @param {Array} gradient Градиент [r1, g1, b1, a1, r2, ...].
      */
     Canvas.prototype._colorize = function (pixels) {
-        var opacity = this.options.get('opacity');
+        var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity);
         for (var i = 3, length = pixels.length, j; i < length; i += 4) {
             // Получаем цвет в градиенте, по значению прозрачночти.
             j = 4 * pixels[i];

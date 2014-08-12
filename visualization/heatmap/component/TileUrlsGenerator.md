@@ -3,21 +3,15 @@ TileUrlsGenerator
 
 Модуль для генерации тайлов тепловой карты.
 
-TileUrlsGenerator(layer, points, optionManager) 
+TileUrlsGenerator(layer, points) 
 -----------------------------
-Конструктов генератора url тайлов тепловой карты.
+Конструктор генератора url тайлов тепловой карты.
 
 **Parameters**
 
 **layer**: Layer, Слой тепловой карты.
 
-**points**: Array, Массив точек в географический координатах.
-
-**optionManager**: option.Manager, Менеджер с опциями отображения тепловой карты:
- opacity - прозрачность карты;
- pointRadius - радиус точки;
- pointBlur - радиус размытия вокруг точки, на тепловой карте;
- pointGradient - объект задающий градиент.
+**points**: Array, Массив точек в географических координатах.
 
 
 addPoints(points) 
@@ -30,7 +24,6 @@ addPoints(points)
 
 **Returns**: TileUrlsGenerator, Добавляет точки, которые будут нанесены на карту.
 
-
 removePoints(points) 
 -----------------------------
 Удаляет точки, которые не должны быть отображены на карте.
@@ -40,7 +33,6 @@ removePoints(points)
 **points**: Array, Массив точек [[x1, y1], [x2, y2], ...].
 
 **Returns**: TileUrlsGenerator, Удаляет точки, которые не должны быть отображены на карте.
-
 
 getTileUrl(tileNumber, zoom) 
 -----------------------------
@@ -53,6 +45,10 @@ getTileUrl(tileNumber, zoom)
 **zoom**: Number, Зум тайла.
 
 **Returns**: String, dataUrl.
+
+destroy() 
+-----------------------------
+Уничтожает внутренние данные генератора.
 
 
 _getIndexOfPoint(point, index) 

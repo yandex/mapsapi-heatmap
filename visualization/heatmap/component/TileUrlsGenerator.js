@@ -2,48 +2,45 @@
  * Модуль для генерации тайлов тепловой карты.
  * @module visualization.heatmap.component.TileUrlsGenerator
  * @requires util.math.areEqual
- * @requires projection.wgs84Mercator
+ * @requires option.Manager
  * @requires visualization.heatmap.component.Canvas
- *
- * @author Morozov Andrew <alt-j@yandex-team.ru>
  */
 ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
     'util.math.areEqual',
-    'projection.wgs84Mercator',
+    'option.Manager',
     'visualization.heatmap.component.Canvas'
 ], function (
     provide,
     areEqual,
-    projection,
+    OptionManager,
     HeatmapCanvas
 ) {
     /**
-     * Рзамер тайла карты.
+     * Размер тайла карты.
      */
     var TILE_SIZE = [256, 256];
 
     /**
      * @public
      * @function TileUrlsGenerator
-     * @description Конструктов генератора url тайлов тепловой карты.
+     * @description Конструктор генератора url тайлов тепловой карты.
      *
      * @param {Layer} layer Слой тепловой карты.
-     * @param {Array} points Массив точек в географический координатах.
-     * @param {option.Manager} optionManager Менеджер с опциями отображения тепловой карты:
-     *  opacity - прозрачность карты;
-     *  pointRadius - радиус точки;
-     *  pointBlur - радиус размытия вокруг точки, на тепловой карте;
-     *  pointGradient - объект задающий градиент.
+     * @param {Array} points Массив точек в географических координатах.
      */
-    var TileUrlsGenerator = function (layer, points, optionManager) {
+    var TileUrlsGenerator = function (layer, points) {
         this._layer = layer;
+        this._projection = this._layer.options.get('projection');
 
         this._points = [];
         if (points) {
             this.addPoints(points);
         }
 
-        this._heatmapCanvas = new HeatmapCanvas(TILE_SIZE[0], TILE_SIZE[1], optionManager);
+        this._canvas = new HeatmapCanvas(TILE_SIZE);
+
+        this.options = new OptionManager({});
+        this._canvas.options.setParent(this.options);
     };
 
     /**
@@ -56,7 +53,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      */
     TileUrlsGenerator.prototype.addPoints = function (points) {
         for (var i = 0, length = points.length, point; i < length; i++) {
-            point = projection.toGlobalPixels(points[i], 0);
+            point = this._projection.toGlobalPixels(points[i], 0);
             this._points.push(point);
         }
         return this;
@@ -73,9 +70,8 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
     TileUrlsGenerator.prototype.removePoints = function (points) {
         for (var i = 0, length = points.length, index; i < length; i++) {
             index = this._getIndexOfPoint(points[i]);
-            while (index !== -1) {
+            if (index !== -1) {
                 this._points.splice(index, 1);
-                index = this._getIndexOfPoint(points[i]);
             }
         }
         return this;
@@ -100,7 +96,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
                     (tileNumber[1] + 1) * TILE_SIZE[1]
                 ]
             ],
-            tileMargin = this._heatmapCanvas.getBrushRadius(),
+            tileMargin = this._canvas.getBrushRadius(),
 
             zoomFactor = Math.pow(2, zoom),
             points = [];
@@ -118,7 +114,24 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
             }
         }
 
-        return this._heatmapCanvas.getDataURLHeatmap(points);
+        return this._canvas.generateDataURLHeatmap(points);
+    };
+
+    /**
+     * @public
+     * @function destroy
+     * @description Уничтожает внутренние данные генератора.
+     */
+    TileUrlsGenerator.prototype.destroy = function () {
+        this._canvas.destroy();
+        this._canvas = {};
+
+        this.options.unsetAll();
+        this.options = {};
+
+        this._projection = {};
+        this._layer = {};
+        this._points = [];
     };
 
     /**
@@ -130,7 +143,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @param {Number} index Индекс данной точки внутри this._points.
      */
     TileUrlsGenerator.prototype._getIndexOfPoint = function (point) {
-        point = projection.toGlobalPixels(point, 0);
+        point = this._projection.toGlobalPixels(point, 0);
         for (var i = 0, length = this._points.length; i < length; i++) {
             if (areEqual(this._points[i], point)) {
                 return i;

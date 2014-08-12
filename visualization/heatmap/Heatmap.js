@@ -2,15 +2,15 @@
  * Модуль для нанесения слоя тепловой карты.
  * @module visualization.Heatmap
  * @requires util.math.areEqual
+ * @requires geoQuery
  * @requires option.Manager
  * @requires Monitor
  * @requires Layer
  * @requires visualization.heatmap.component.TileUrlsGenerator
- *
- * @author Morozov Andrew <alt-j@yandex-team.ru>
  */
 ymaps.modules.define('visualization.Heatmap', [
     'util.math.areEqual',
+    'geoQuery',
     'option.Manager',
     'Monitor',
     'Layer',
@@ -18,74 +18,93 @@ ymaps.modules.define('visualization.Heatmap', [
 ], function (
     provide,
     areEqual,
+    geoQuery,
     OptionManager,
     Monitor,
     Layer,
-    HeatmapTileUrlsGenerator
+    TileUrlsGenerator
 ) {
     /**
      * @public
      * @function Heatmap
      * @description Конструктор тепловой карты.
      *
-     * @param {Array} points Массив точек в географический координатах.
+     * @param {Object} data Источник геообъектов.
      * @param {Object} options Объект с опциями отображения тепловой карты:
-     *  opacity - прозрачность карты;
      *  pointRadius - радиус точки;
-     *  pointBlur - радиус размытия вокруг точки, на тепловой карте;
-     *  pointGradient - объект задающий градиент.
+     *  pointBlur - радиус размытия вокруг точки на тепловой карте;
+     *  opacity - прозрачность карты;
+     *  gradient - объект, задающий градиент.
      */
-    var Heatmap = function (points, options) {
-        // Поскольку слой будет создан только после setMap, до установки карты
-        // точки будут хранится во временном хранилище.
-        this._temporary = { points: [] };
-        if (points) {
-            this.addPoints(points);
-        }
+    var Heatmap = function (data, options) {
+        this._geoObjects = [];
+        this.addData(data);
 
         this.options = new OptionManager(options);
     };
 
     /**
      * @public
-     * @function addPoints
-     * @description Добавляет точки, которые будут нанесены на карту.
+     * @function addData
+     * @description Добавляет данные (точки), которые будут нанесены
+     * на карту. Если слой уже отрисован, то любые последующие манипуляции с
+     * данными приводят к его перерисовке.
      *
-     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
+     * @param {Object} data Источник геообъектов.
      * @returns {Heatmap}
      */
-    Heatmap.prototype.addPoints = function (points) {
-        if (this._tileUrlsGenerator) {
-            this._tileUrlsGenerator.addPoints(points);
-            this._layer.update();
-        } else {
-            for (var i = 0, length = points.length; i < length; i++) {
-                this._temporary.points.push(points[i]);
+    Heatmap.prototype.addData = function (data) {
+        var iterator = geoQuery(data).getIterator(),
+            points = [],
+
+            geoObject;
+        while ((geoObject = iterator.getNext()) !== iterator.STOP_ITERATION) {
+            if (
+                this._geoObjects.indexOf(geoObject) === -1 &&
+                geoObject.geometry.getType() === 'Point'
+            ) {
+                this._geoObjects.push(geoObject);
+                points.push(geoObject.geometry.getCoordinates());
             }
+        }
+        if (this._tileUrlsGenerator && points.length > 0) {
+            this._tileUrlsGenerator
+                .addPoints(points);
+            this._refresh();
         }
         return this;
     };
 
     /**
      * @public
-     * @function removePoints
-     * @description Удаляет точки, которые не должны быть отображены на карте.
+     * @function removeData
+     * @description Удаляет данные (точки), которые не должны быть
+     * отображены на карте. Если слой уже отрисован, то любые последующие
+     * манипуляции с данными приводят к его перерисовке.
      *
-     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
+     * @param {Object} data Источник геообъектов.
      * @returns {Heatmap}
      */
-    Heatmap.prototype.removePoints = function (points) {
-        if (this._tileUrlsGenerator) {
-            this._tileUrlsGenerator.removePoints(points);
-            this._layer.update();
-        } else {
-            for (var i = 0, length = points.length, index; i < length; i++) {
-                index = this._getIndexOfPoint(points[i]);
-                while (index !== -1) {
-                    this._temporary.points.splice(index, 1);
-                    index = this._getIndexOfPoint(points[i]);
-                }
+    Heatmap.prototype.removeData = function (data) {
+        var iterator = geoQuery(data).getIterator(),
+            points = [],
+
+            geoObject,
+            indexOfGeoObject;
+        while ((geoObject = iterator.getNext()) !== iterator.STOP_ITERATION) {
+            indexOfGeoObject = this._geoObjects.indexOf(geoObject);
+            if (
+                indexOfGeoObject !== -1 &&
+                geoObject.geometry.getType() === 'Point'
+            ) {
+                this._geoObjects.splice(indexOfGeoObject, 1);
+                points.push(geoObject.geometry.getCoordinates());
             }
+        }
+        if (this._tileUrlsGenerator && points.length > 0) {
+            this._tileUrlsGenerator
+                .removePoints(points);
+            this._refresh();
         }
         return this;
     };
@@ -99,16 +118,107 @@ ymaps.modules.define('visualization.Heatmap', [
      * @returns {Heatmap}
      */
     Heatmap.prototype.setMap = function (map) {
-        if (!this._layer) {
-            this._createLayer();
+        if (this._map !== map) {
+            if (this._layer) {
+                this._map.layers.remove(this._layer);
+                this._destroyLayer();
+            }
+            this._map = map;
+            if (map) {
+                this._setupLayer();
+                this._map.layers.add(this._layer);
+            }
         }
-        if (this._map && this._map !== map) {
-            this._map.layers.remove(this._layer);
-        }
-        this._map = map;
-        this._map.layers.add(this._layer);
-
         return this;
+    };
+
+    /**
+     * @public
+     * @function destroy
+     * @description Уничтожает внутренние данные слоя тепловой карты.
+     */
+    Heatmap.prototype.destroy = function () {
+        this.setMap(null);
+        this._geoObjects = [];
+
+        this.options.unsetAll();
+        this.options = {};
+    };
+
+    /**
+     * @private
+     * @function _refresh
+     * @description Перегенерирует слой тепловой карты.
+     *
+     * @returns {Monitor} Монитор опций.
+     */
+    Heatmap.prototype._refresh = function () {
+        if (this._layer) {
+            this._layer.update();
+        }
+        return this;
+    };
+
+    /**
+     * @private
+     * @function _setupLayer
+     * @description Установка слоя, в котором будет размещена тепловая карта.
+     *
+     * @returns {Layer} Слой тепловой карты.
+     */
+    Heatmap.prototype._setupLayer = function () {
+        this._layer = new Layer('', {
+            projection: this._map.options.get('projection'),
+            tileTransparent: true
+        });
+
+        this._setupTileUrlsGenerator();
+        this._setupOptionMonitor();
+
+        var getTileUrl = this._tileUrlsGenerator.getTileUrl.bind(this._tileUrlsGenerator);
+        this._layer.getTileUrl = getTileUrl;
+
+        return this._layer;
+    };
+
+    /**
+     * @private
+     * @function _destroyLayer
+     * @description Уничтожает this._layer.
+     */
+    Heatmap.prototype._destroyLayer = function () {
+        this._destroyOptionMonitor();
+        this._destroyTileUrlsGenerator();
+        this._layer = null;
+    };
+
+    /**
+     * @private
+     * @function _setupTileUrlsGenerator
+     * @description Устанавливает генератор для тайлов тепловой карты.
+     *
+     * @returns {TileUrlsGenerator} Генератор тайлов.
+     */
+    Heatmap.prototype._setupTileUrlsGenerator = function () {
+        var points = [];
+        for (var i = 0, length = this._geoObjects.length; i < length; i++) {
+            points.push(this._geoObjects[i].geometry.getCoordinates());
+        }
+        this._tileUrlsGenerator = new TileUrlsGenerator(this._layer, points);
+
+        this._tileUrlsGenerator.options.setParent(this.options);
+
+        return this._tileUrlsGenerator;
+    };
+
+    /**
+     * @private
+     * @function _destroyTileUrlsGenerator
+     * @description Уничтожает this._tileUrlsGenerator.
+     */
+    Heatmap.prototype._destroyTileUrlsGenerator = function () {
+        this._tileUrlsGenerator.destroy();
+        this._tileUrlsGenerator = null;
     };
 
     /**
@@ -116,60 +226,26 @@ ymaps.modules.define('visualization.Heatmap', [
      * @function _setupOptionMonitor
      * @description Устанавливает монитор на опции тепловой карты.
      *
-     * @returns {Monitor} this._optionMonitor Монитор опций.
+     * @returns {Monitor} Монитор опций.
      */
     Heatmap.prototype._setupOptionMonitor = function () {
         this._optionMonitor = new Monitor(this.options);
-        
-        return this._optionMonitor
-            .add('opacity', this._layer.update, this._layer)
-            .add('pointRadius', this._layer.update, this._layer)
-            .add('pointBlur', this._layer.update, this._layer)
-            .add('pointGradient', this._layer.update, this._layer);
-    };
 
-    /**
-     * @private
-     * @function _getIndexOfPoint
-     * @description Получение позиции точки во временном хранилище.
-     *
-     * @param {Array} point Точка.
-     * @param {Number} index Индекс данной точки внутри this._temporary.points.
-     */
-    Heatmap.prototype._getIndexOfPoint = function (point) {
-        if (!this._temporary || !this._temporary.points) {
-            return -1;
-        }
-        for (var i = 0, length = this._temporary.points.length; i < length; i++) {
-            if (areEqual(this._temporary.points[i], point)) {
-                return i;
-            }
-        }
-        return -1;
-    };
-
-    /**
-     * @private
-     * @function _createLayer
-     * @description Создание слоя, в котором будет размещена тепловая карта.
-     *
-     * @returns {Heatmap}
-     */
-    Heatmap.prototype._createLayer = function () {
-        this._layer = new Layer('', { tileTransparent: true });
-        this._tileUrlsGenerator = new HeatmapTileUrlsGenerator(
-            this._layer,
-            this._temporary.points,
-            this.options
+        return this._optionMonitor.add(
+            ['pointRadius', 'pointBlur', 'opacity', 'gradient'],
+            this._refresh,
+            this
         );
-        this._layer.getTileUrl = this._tileUrlsGenerator
-            .getTileUrl
-            .bind(this._tileUrlsGenerator);
+    };
 
-        this._setupOptionMonitor();
-        this._temporary = null;
-
-        return this;
+    /**
+     * @private
+     * @function _destroyOptionMonitor
+     * @description Уничтожает this._optionMonitor.
+     */
+    Heatmap.prototype._destroyOptionMonitor = function () {
+        this._optionMonitor.removeAll();
+        this._optionMonitor = {};
     };
 
     provide(Heatmap);
