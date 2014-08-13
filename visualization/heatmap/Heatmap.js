@@ -140,18 +140,20 @@ ymaps.modules.define('visualization.Heatmap', [
         }
 
         if (isJsonFeature(data) && data.geometry.type == 'Point') {
-            points = convertJsonFeatureToPoint(data);
+            points.push(convertJsonFeatureToPoint(data));
         } else if (isJsonFeatureCollection(data)) {
             for (var i = 0, l = data.features.length; i < l; i++) {
-                points = points.concat(convertDataToPointsArray(data.features[i]));
+                points = points.concat(this._convertDataToPointsArray(data.features[i]));
             }
+        } else if (isCoordinates(data)) {
+            points.push(convertCoordinatesToPoint(data));
         } else {
             var dataArray = [].concat(data);
             for (var i = 0, l = dataArray.length, item; i < l; i++) {
                 item = dataArray[i];
                 if (isCoordinates(item)) {
                     points.push(convertCoordinatesToPoint(item));
-                } else if (isJsonGeometry(item)) {
+                } else if (isJsonGeometry(item) && item.type == 'Point') {
                     points.push(convertCoordinatesToPoint(item.coordinates));
                 } else if (isGeoObject(item) && item.geometry.getType() == 'Point') {
                     points.push(convertGeoObjectToPoint(item));
@@ -161,7 +163,7 @@ ymaps.modules.define('visualization.Heatmap', [
                     while ((geoObject = iterator.getNext()) != iterator.STOP_ITERATION) {
                         // Выполняем рекурсивно на случай вложенных коллекций.
                         points = points.concat(
-                            convertDataToPointsArray(geoObject)
+                            this._convertDataToPointsArray(geoObject)
                         );
                     }
                 }

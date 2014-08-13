@@ -1,0 +1,22 @@
+{
+  "name": "YMaps.Modules",
+  "description": "External Modules for API Yandex.Maps",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alt-j/ymaps-modules.git"
+  },
+  "author": {
+    "name": "Andrew Morozov",
+    "email": "alt-j@yandex-team.ru"
+  },
+  "private": false,
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "1.9.1",
+    "karma": "0.12.21",
+    "karma-firefox-launcher": "0.1.3",
+    "karma-mocha": "0.1.7",
+    "mocha": "1.21.4"
+  }
+}
