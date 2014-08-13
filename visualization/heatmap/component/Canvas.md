@@ -24,7 +24,7 @@ generateDataURLHeatmap(points)
 
 **Parameters**
 
-**points**: Array, Массив точек [[x1, y1], [x2, y2], ...].
+**points**: Array.&lt;Object&gt;, Массив точек [[x1, y1], [x2, y2], ...].
 
 **Returns**: String, dataURL.
 
@@ -65,7 +65,7 @@ _createGradient()
 -----------------------------
 Создание 256x1 градиента, которым будет раскрашена карта.
 
-**Returns**: Array, [r1, g1, b1, a1, r2, ...].
+**Returns**: Array.&lt;Number&gt;, [r1, g1, b1, a1, r2, ...].
 
 _drawHeatmap() 
 -----------------------------

@@ -22,8 +22,8 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @function TileUrlsGenerator
      * @description Конструктор генератора url тайлов тепловой карты.
      *
-     * @param {Object} projection Проекция.
-     * @param {Array} points Массив точек в географических координатах.
+     * @param {IProjection} projection Проекция.
+     * @param {Object[]} points Массив точек в географических координатах.
      */
     var TileUrlsGenerator = function (projection, points) {
         this._projection = projection;
@@ -40,7 +40,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @function setPoints
      * @description Устанавливает точки, которые будут нанесены на карту.
      *
-     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
+     * @param {Object[]} points Массив точек в географических координатах.
      * @returns {TileUrlsGenerator}
      */
     TileUrlsGenerator.prototype.setPoints = function (points) {
@@ -64,12 +64,12 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @function getPoints
      * @description Отдает точки в географических координатах.
      *
-     * @returns {Array} points Массив точек [[x1, y1], [x2, y2], ...].
+     * @returns {Object[]} points Массив точек в географических координатах.
      */
     TileUrlsGenerator.prototype.getPoints = function () {
         var points = [];
         for (var i = 0, length = this._points.length; i < length; i++) {
-            this._points.push({
+            points.push({
                 coordinates: this._projection.fromGlobalPixels(this._points[i].coordinates, 0),
                 weight: this._points[i].weight
             });
@@ -107,7 +107,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
             points = [];
         for (var i = 0, length = this._points.length, point; i < length; i++) {
             point = this._points[i].coordinates;
-            if (this._isPointInBounds(point, tileBounds, tileMargin)) {
+            if (this._contains(tileBounds, point, tileMargin)) {
                 points.push({
                     coordinates: [
                         (point[0] - tileBounds[0][0]) * zoomFactor,
@@ -138,12 +138,12 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @function _isPointInBounds
      * @description Проверка попадаения точки в границы карты.
      *
+     * @param {Number[][]} bounds Область, в которую попадание проверяется.
      * @param {Number[]} point Точка в географических координатах.
-     * @param {Array} bounds Область, в которую попадание проверяется.
      * @param {Number} margin Необязательный параметр, если нужно расширисть bounds.
      * @returns {Boolean} True - попадает.
      */
-    TileUrlsGenerator.prototype._isPointInBounds = function (point, bounds, margin) {
+    TileUrlsGenerator.prototype._contains = function (bounds, point, margin) {
         return (point[0] >= bounds[0][0] - margin) &&
             (point[0] <= bounds[1][0] + margin) &&
             (point[1] >= bounds[0][1] - margin) &&

@@ -73,7 +73,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @function generateDataURLHeatmap
      * @description Получение карты в виде dataURL с нанесенными точками.
      *
-     * @param {Array} points Массив точек [[x1, y1], [x2, y2], ...].
+     * @param {Object[]} points Массив точек [[x1, y1], [x2, y2], ...].
      * @returns {String} dataURL.
      */
     Canvas.prototype.generateDataURLHeatmap = function (points) {
@@ -171,7 +171,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @function _createGradient
      * @description Создание 256x1 градиента, которым будет раскрашена карта.
      *
-     * @returns {Array} [r1, g1, b1, a1, r2, ...].
+     * @returns {Number[]} [r1, g1, b1, a1, r2, ...].
      */
     Canvas.prototype._createGradient = function () {
         var canvas = document.createElement('canvas'),
@@ -218,9 +218,8 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
 
         context.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-        for (var i = 0, length = points.length, opacity; i < length; i++) {
-            opacity = points[i].weight * weightFactor;
-            context.globalAlpha = opacity < 1 ? opacity : 1;
+        for (var i = 0, length = points.length; i < length; i++) {
+            context.globalAlpha = Math.min(points[i].weight * weightFactor, 1);
             context.drawImage(
                 this._brush,
                 points[i].coordinates[0] - radius,
@@ -246,14 +245,13 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     Canvas.prototype._colorize = function (pixels) {
         var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity) * 255;
         for (var i = 3, length = pixels.length, j; i < length; i += 4) {
-            // Получаем цвет в градиенте, по значению прозрачночти.
-            j = 4 * pixels[i];
-            if (j) {
+            if (pixels[i]) {
+                // Получаем цвет в градиенте, по значению прозрачночти.
+                j = 4 * pixels[i];
                 pixels[i - 3] = this._gradient[j];
                 pixels[i - 2] = this._gradient[j + 1];
                 pixels[i - 1] = this._gradient[j + 2];
-            }
-            if (pixels[i]) {
+
                 // Устанавливаем прозрачность слоя.
                 pixels[i] = opacity;
             }

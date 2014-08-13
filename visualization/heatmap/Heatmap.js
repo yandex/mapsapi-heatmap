@@ -31,7 +31,7 @@ ymaps.modules.define('visualization.Heatmap', [
      *  radius - радиус влияния (в пикселях) для каждой точки данных;
      *  dissipating - указывает, следует ли рассредоточивать данные тепловой карты при
      *  уменьшении масштаба, если указано true, то радиус точки для n'го масштаба будет
-     *  равен (radius * zoom / 10). По умолачнию опция отключена.
+     *  равен (radius * zoom / 10). По умолчанию опция отключена.
      *  opacity - прозрачность карты;
      *  intensityOfMidpoint - интенсивность медианной (по весу) точки;
      *  gradient - объект, задающий градиент.
@@ -49,7 +49,7 @@ ymaps.modules.define('visualization.Heatmap', [
      * @public
      * @function getData
      * @description Отдает ссылку на объект данных, который был передан
-     * в конструктов или в метод setData.
+     * в конструктор или в метод setData.
      * @returns {Object|null}
      */
     Heatmap.prototype.getData = function () {
@@ -83,7 +83,7 @@ ymaps.modules.define('visualization.Heatmap', [
     /**
      * @public
      * @function setMap
-     * @description Получение текущей карты карту, на которой отображена тепловая карта.
+     * @description Получение текущей карты, на которой отображена тепловая карта.
      *
      * @returns {Map} map Инстанция ymaps.Map.
      */
@@ -120,6 +120,7 @@ ymaps.modules.define('visualization.Heatmap', [
      * @description Уничтожает внутренние данные слоя тепловой карты.
      */
     Heatmap.prototype.destroy = function () {
+        this._data = null;
         this.setMap(null);
     };
 
@@ -143,7 +144,9 @@ ymaps.modules.define('visualization.Heatmap', [
             points.push(convertJsonFeatureToPoint(data));
         } else if (isJsonFeatureCollection(data)) {
             for (var i = 0, l = data.features.length; i < l; i++) {
-                points = points.concat(this._convertDataToPointsArray(data.features[i]));
+                points = points.concat(
+                    this._convertDataToPointsArray(data.features[i])
+                );
             }
         } else if (isCoordinates(data)) {
             points.push(convertCoordinatesToPoint(data));

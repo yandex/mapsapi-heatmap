@@ -9,9 +9,9 @@ TileUrlsGenerator(projection, points)
 
 **Parameters**
 
-**projection**: Object, Проекция.
+**projection**: IProjection, Проекция.
 
-**points**: Array, Массив точек в географических координатах.
+**points**: Array.&lt;Object&gt;, Массив точек в географических координатах.
 
 
 setPoints(points) 
@@ -20,7 +20,7 @@ setPoints(points)
 
 **Parameters**
 
-**points**: Array, Массив точек [[x1, y1], [x2, y2], ...].
+**points**: Array.&lt;Object&gt;, Массив точек в географических координатах.
 
 **Returns**: TileUrlsGenerator, Устанавливает точки, которые будут нанесены на карту.
 
@@ -28,7 +28,7 @@ getPoints()
 -----------------------------
 Отдает точки в географических координатах.
 
-**Returns**: Array, points Массив точек [[x1, y1], [x2, y2], ...].
+**Returns**: Array.&lt;Object&gt;, points Массив точек в географических координатах.
 
 getTileUrl(tileNumber, zoom) 
 -----------------------------
@@ -47,15 +47,15 @@ destroy()
 Уничтожает внутренние данные генератора.
 
 
-_isPointInBounds(point, bounds, margin) 
+_isPointInBounds(bounds, point, margin) 
 -----------------------------
 Проверка попадаения точки в границы карты.
 
 **Parameters**
 
-**point**: Array.&lt;Number&gt;, Точка в географических координатах.
+**bounds**: Number[][], Область, в которую попадание проверяется.
 
-**bounds**: Array, Область, в которую попадание проверяется.
+**point**: Array.&lt;Number&gt;, Точка в географических координатах.
 
 **margin**: Number, Необязательный параметр, если нужно расширисть bounds.
 
