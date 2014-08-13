@@ -12,12 +12,22 @@ Heatmap(data, options)
 **data**: Object, Источник геообъектов.
 
 **options**: Object, Объект с опциями отображения тепловой карты:
- pointRadius - радиус точки для 1-го зума (на n'ом zoom'е будет равен pointRadius * zoom);
+ radius - радиус влияния (в пикселях) для каждой точки данных;
+ dissipating - указывает, следует ли рассредоточивать данные тепловой карты при
+ уменьшении масштаба, если указано true, то радиус точки для n'го масштаба будет
+ равен (radius * zoom / 10). По умолачнию опция отключена.
  opacity - прозрачность карты;
- medianaOfGradient - медиана цвета, которая должна быть среди точек на карте
- (значение от 0 до 1 - уровень в gradient'е).
+ intensityOfMidpoint - интенсивность медианной (по весу) точки;
  gradient - объект, задающий градиент.
 
+
+getData() 
+-----------------------------
+Отдает ссылку на объект данных, который был передан
+в конструктов или в метод setData.
+
+**Returns**: Object | null, Отдает ссылку на объект данных, который был передан
+в конструктов или в метод setData.
 
 setData(data) 
 -----------------------------
@@ -27,11 +37,18 @@ setData(data)
 
 **Parameters**
 
-**data**: Object, Источник геообъектов.
+**data**: Object, Точки в одном из форматов:
+IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
 
 **Returns**: Heatmap, Добавляет данные (точки), которые будут нанесены
 на карту. Если слой уже отрисован, то любые последующие манипуляции с
 данными приводят к его перерисовке.
+
+setMap() 
+-----------------------------
+Получение текущей карты карту, на которой отображена тепловая карта.
+
+**Returns**: Map, map Инстанция ymaps.Map.
 
 setMap(map) 
 -----------------------------
@@ -58,116 +75,6 @@ _convertDataToPointsArray(data)
 IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
 
 **Returns**: Array, points Массив взвешенных точек.
-
-_isGeoQueryResult(object) 
------------------------------
-Проверяет является ли переданный объект GeoQueryResult'ом.
-
-**Parameters**
-
-**object**: Object, Произвольный объект.
-
-**Returns**: Boolean, Проверяет является ли переданный объект GeoQueryResult'ом.
-
-_convertGeoQueryResultToPoints(geoQueryResult) 
------------------------------
-Конвертирует geoQueryResult в массив взвешенных точек.
-
-**Parameters**
-
-**geoQueryResult**: GeoQueryResult, Объект с точками.
-
-**Returns**: Array, points Массив взвешенных точек.
-
-_isJsonFeature(object) 
------------------------------
-Проверяет является ли переданный объект JSON-описанием сущности.
-
-**Parameters**
-
-**object**: Object, Произвольный объект.
-
-**Returns**: Boolean, Проверяет является ли переданный объект JSON-описанием сущности.
-
-_convertJsonFeatureToPoint(jsonFeature) 
------------------------------
-Конвертирует jsonFeature в взвешенную точку.
-
-**Parameters**
-
-**jsonFeature**: Object, JSON, описывающий точки.
-
-**Returns**: Object, point Взвешенная точка.
-
-_isJsonFeatureCollection(object) 
------------------------------
-Проверяет является ли переданный объект JSON-описанием коллекции сущностей.
-
-**Parameters**
-
-**object**: Object, Произвольный объект.
-
-**Returns**: Boolean, Проверяет является ли переданный объект JSON-описанием коллекции сущностей.
-
-_isCoordinates(object) 
------------------------------
-Проверяет является ли переданный объект координатами точки ([x1, y1]).
-
-**Parameters**
-
-**object**: Object, Произвольный объект.
-
-**Returns**: Boolean, Проверяет является ли переданный объект координатами точки ([x1, y1]).
-
-_convertCoordinatesToPoint(coordinates) 
------------------------------
-Конвертирует geoObject в взвешенную точку.
-
-**Parameters**
-
-**coordinates**: Array.&lt;Number&gt;, Координаты точки.
-
-**Returns**: Object, point Взвешенная точка.
-
-_isJsonGeometry(object) 
------------------------------
-Проверяет является ли переданный объект JSON-описанием геометрии.
-
-**Parameters**
-
-**object**: Object, Произвольный объект.
-
-**Returns**: Boolean, Проверяет является ли переданный объект JSON-описанием геометрии.
-
-_isGeoObject(object) 
------------------------------
-Проверяет является ли переданный объект инстанцией геообъекта.
-
-**Parameters**
-
-**object**: Object, Произвольный объект.
-
-**Returns**: Boolean, Проверяет является ли переданный объект инстанцией геообъекта.
-
-_convertGeoObjectToPoint(geoObject) 
------------------------------
-Конвертирует geoObject в взвешенную точку.
-
-**Parameters**
-
-**geoObject**: GeoObject, Объект с геометрией Point.
-
-**Returns**: Object, point Взвешенная точка.
-
-_isCollection(object) 
------------------------------
-Проверяет является ли переданный объект инстанцией коллекции.
-
-**Parameters**
-
-**object**: Object, Произвольный объект.
-
-**Returns**: Boolean, Проверяет является ли переданный объект инстанцией коллекции.
 
 _refresh() 
 -----------------------------

@@ -9,7 +9,7 @@ TileUrlsGenerator(projection, points)
 
 **Parameters**
 
-**projection**: Object, Слой тепловой карты.
+**projection**: Object, Проекция.
 
 **points**: Array, Массив точек в географических координатах.
 

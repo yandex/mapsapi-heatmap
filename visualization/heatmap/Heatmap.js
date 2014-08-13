@@ -28,10 +28,12 @@ ymaps.modules.define('visualization.Heatmap', [
      *
      * @param {Object} data Источник геообъектов.
      * @param {Object} options Объект с опциями отображения тепловой карты:
-     *  pointRadius - радиус точки для 1-го зума (на n'ом zoom'е будет равен pointRadius * zoom);
+     *  radius - радиус влияния (в пикселях) для каждой точки данных;
+     *  dissipating - указывает, следует ли рассредоточивать данные тепловой карты при
+     *  уменьшении масштаба, если указано true, то радиус точки для n'го масштаба будет
+     *  равен (radius * zoom / 10). По умолачнию опция отключена.
      *  opacity - прозрачность карты;
-     *  medianaOfGradient - медиана цвета, которая должна быть среди точек на карте
-     *  (значение от 0 до 1 - уровень в gradient'е).
+     *  intensityOfMidpoint - интенсивность медианной (по весу) точки;
      *  gradient - объект, задающий градиент.
      */
     var Heatmap = function (data, options) {
@@ -45,16 +47,29 @@ ymaps.modules.define('visualization.Heatmap', [
 
     /**
      * @public
+     * @function getData
+     * @description Отдает ссылку на объект данных, который был передан
+     * в конструктов или в метод setData.
+     * @returns {Object|null}
+     */
+    Heatmap.prototype.getData = function () {
+        return this._data || null;
+    };
+
+    /**
+     * @public
      * @function setData
      * @description Добавляет данные (точки), которые будут нанесены
      * на карту. Если слой уже отрисован, то любые последующие манипуляции с
      * данными приводят к его перерисовке.
      *
-     * @param {Object} data Источник геообъектов.
+     * @param {Object} data Точки в одном из форматов:
+     * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
      * @returns {Heatmap}
      */
     Heatmap.prototype.setData = function (data) {
         var points = this._convertDataToPointsArray(data);
+        this._data = data;
 
         if (this._tileUrlsGenerator) {
             this._tileUrlsGenerator.setPoints(points);
@@ -63,6 +78,17 @@ ymaps.modules.define('visualization.Heatmap', [
             this._unprocessedPoints = points;
         }
         return this;
+    };
+
+    /**
+     * @public
+     * @function setMap
+     * @description Получение текущей карты карту, на которой отображена тепловая карта.
+     *
+     * @returns {Map} map Инстанция ymaps.Map.
+     */
+    Heatmap.prototype.getMap = function () {
+        return this._map;
     };
 
     /**
@@ -113,195 +139,35 @@ ymaps.modules.define('visualization.Heatmap', [
             data = JSON.parse(data);
         }
 
-        if (this._isGeoQueryResult(data)) {
-            points = this._convertGeoQueryResultToPoints(data);
-        } else if (this._isJsonFeature(data) && data.geometry.type == 'Point') {
-            points = this._convertJsonFeatureToPoint(data);
-        } else if (this._isJsonFeatureCollection(data)) {
+        if (isJsonFeature(data) && data.geometry.type == 'Point') {
+            points = convertJsonFeatureToPoint(data);
+        } else if (isJsonFeatureCollection(data)) {
             for (var i = 0, l = data.features.length; i < l; i++) {
-                points = points.concat(this._convertDataToPointsArray(data.features[i]));
+                points = points.concat(convertDataToPointsArray(data.features[i]));
             }
         } else {
-            data = [].concat(data);
-            for (var i = 0, l = data.length, item; i < l; i++) {
-                item = data[i];
-                if (this._isCoordinates(item)) {
-                    points.push(this._convertCoordinatesToPoint(item));
-                } else if (this._isJsonGeometry(item)) {
-                    points.push(this._convertCoordinatesToPoint(item.coordinates));
-                } else if (this._isGeoObject(item) && item.geometry.getType() == 'Point') {
-                    points.push(this._convertGeoObjectToPoint(item));
-                } else if (this._isCollection(item)) {
+            var dataArray = [].concat(data);
+            for (var i = 0, l = dataArray.length, item; i < l; i++) {
+                item = dataArray[i];
+                if (isCoordinates(item)) {
+                    points.push(convertCoordinatesToPoint(item));
+                } else if (isJsonGeometry(item)) {
+                    points.push(convertCoordinatesToPoint(item.coordinates));
+                } else if (isGeoObject(item) && item.geometry.getType() == 'Point') {
+                    points.push(convertGeoObjectToPoint(item));
+                } else if (isCollection(item)) {
                     var iterator = item.getIterator(),
                         geoObject;
                     while ((geoObject = iterator.getNext()) != iterator.STOP_ITERATION) {
                         // Выполняем рекурсивно на случай вложенных коллекций.
                         points = points.concat(
-                            this._convertDataToPointsArray(geoObject)
+                            convertDataToPointsArray(geoObject)
                         );
                     }
                 }
             }
         }
         return points;
-    };
-
-    /**
-     * @private
-     * @function _isGeoQueryResult
-     * @description Проверяет является ли переданный объект GeoQueryResult'ом.
-     *
-     * @param {Object} object Произвольный объект.
-     * @returns {Boolean}
-     */
-    Heatmap.prototype._isGeoQueryResult = function (object) {
-        return !!object.then && !!object.getIterator;
-    };
-
-    /**
-     * @private
-     * @function _convertGeoQueryResultToPoints
-     * @description Конвертирует geoQueryResult в массив взвешенных точек.
-     *
-     * @param {GeoQueryResult} geoQueryResult Объект с точками.
-     * @returns {Array} points Массив взвешенных точек.
-     */
-    Heatmap.prototype._convertGeoQueryResultToPoints = function (geoQueryResult) {
-        var points = [],
-            iterator = geoQueryResult.getIterator(),
-            geoObject;
-        while ((geoObject = iterator.getNext()) != iterator.STOP_ITERATION) {
-            if (geoObject.geometry.getType() == 'Point') {
-                points.push({
-                    coordinates: geoObject.geometry.getCoordinates(),
-                    weight: geoObject.properties.get('weight') || 1
-                });
-            }
-        }
-        return points;
-    };
-
-    /**
-     * @private
-     * @function _isJsonFeature
-     * @description Проверяет является ли переданный объект JSON-описанием сущности.
-     *
-     * @param {Object} object Произвольный объект.
-     * @returns {Boolean}
-     */
-    Heatmap.prototype._isJsonFeature = function (object) {
-        return object.type == 'Feature';
-    };
-
-    /**
-     * @private
-     * @function _convertJsonFeatureToPoint
-     * @description Конвертирует jsonFeature в взвешенную точку.
-     *
-     * @param {Object} jsonFeature JSON, описывающий точки.
-     * @returns {Object} point Взвешенная точка.
-     */
-    Heatmap.prototype._convertJsonFeatureToPoint = function (jsonFeature) {
-        var weight = 1;
-        if (jsonFeature.properties && jsonFeature.properties.weight) {
-            weight = jsonFeature.properties.weight;
-        }
-        return {
-            coordinates: jsonFeature.geometry.coordinates,
-            weight: weight
-        };
-    };
-
-    /**
-     * @private
-     * @function _isJsonFeatureCollection
-     * @description Проверяет является ли переданный объект JSON-описанием коллекции сущностей.
-     *
-     * @param {Object} object Произвольный объект.
-     * @returns {Boolean}
-     */
-    Heatmap.prototype._isJsonFeatureCollection = function (object) {
-        return object.type == 'FeatureCollection';
-    };
-
-    /**
-     * @private
-     * @function _isCoordinates
-     * @description Проверяет является ли переданный объект координатами точки ([x1, y1]).
-     *
-     * @param {Object} object Произвольный объект.
-     * @returns {Boolean}
-     */
-    Heatmap.prototype._isCoordinates = function (object) {
-        return Object.prototype.toString.call(object) == '[object Array]' &&
-            typeof object[0] == 'number' &&
-            typeof object[1] == 'number';
-    };
-
-    /**
-     * @private
-     * @function _convertCoordinatesToPoint
-     * @description Конвертирует geoObject в взвешенную точку.
-     *
-     * @param {Number[]} coordinates Координаты точки.
-     * @returns {Object} point Взвешенная точка.
-     */
-    Heatmap.prototype._convertCoordinatesToPoint = function (coordinates) {
-        return {
-            coordinates: coordinates,
-            weight: 1
-        };
-    };
-
-    /**
-     * @private
-     * @function _isJsonGeometry
-     * @description Проверяет является ли переданный объект JSON-описанием геометрии.
-     *
-     * @param {Object} object Произвольный объект.
-     * @returns {Boolean}
-     */
-    Heatmap.prototype._isJsonGeometry = function (object) {
-        return !!(object.type && object.coordinates);
-    };
-
-    /**
-     * @private
-     * @function _isGeoObject
-     * @description Проверяет является ли переданный объект инстанцией геообъекта.
-     *
-     * @param {Object} object Произвольный объект.
-     * @returns {Boolean}
-     */
-    Heatmap.prototype._isGeoObject = function (object) {
-        return !!object.geometry;
-    };
-
-    /**
-     * @private
-     * @function _convertGeoObjectToPoint
-     * @description Конвертирует geoObject в взвешенную точку.
-     *
-     * @param {GeoObject} geoObject Объект с геометрией Point.
-     * @returns {Object} point Взвешенная точка.
-     */
-    Heatmap.prototype._convertGeoObjectToPoint = function (geoObject) {
-        return {
-            coordinates: geoObject.geometry.getCoordinates(),
-            weight: geoObject.properties.get('weight') || 1
-        };
-    };
-
-    /**
-     * @private
-     * @function _isCollection
-     * @description Проверяет является ли переданный объект инстанцией коллекции.
-     *
-     * @param {Object} object Произвольный объект.
-     * @returns {Boolean}
-     */
-    Heatmap.prototype._isCollection = function (object) {
-        return !!object.getIterator;
     };
 
     /**
@@ -326,13 +192,11 @@ ymaps.modules.define('visualization.Heatmap', [
      * @returns {Layer} Слой тепловой карты.
      */
     Heatmap.prototype._setupLayer = function () {
-        this._layer = new Layer('', { tileTransparent: true });
-
         this._setupTileUrlsGenerator();
-        this._setupOptionMonitor();
-
         var getTileUrl = this._tileUrlsGenerator.getTileUrl.bind(this._tileUrlsGenerator);
-        this._layer.getTileUrl = getTileUrl;
+
+        this._layer = new Layer(getTileUrl, { tileTransparent: true });
+        this._setupOptionMonitor();
 
         return this._layer;
     };
@@ -388,7 +252,11 @@ ymaps.modules.define('visualization.Heatmap', [
     Heatmap.prototype._setupOptionMonitor = function () {
         this._optionMonitor = new Monitor(this.options);
 
-        return this._optionMonitor.add(['pointRadius', 'opacity', 'gradient'], this._refresh, this);
+        return this._optionMonitor.add(
+            ['radius', 'dissipating', 'opacity', 'intensityOfMidpoint', 'gradient'],
+            this._refresh,
+            this
+        );
     };
 
     /**
@@ -400,6 +268,96 @@ ymaps.modules.define('visualization.Heatmap', [
         this._optionMonitor.removeAll();
         this._optionMonitor = {};
     };
+
+    /**
+     * @function isJsonFeature
+     * @description Проверяет является ли переданный объект JSON-описанием сущности.
+     */
+    function isJsonFeature (object) {
+        return object.type == 'Feature';
+    }
+
+    /**
+     * @function convertJsonFeatureToPoint
+     * @description Конвертирует jsonFeature в взвешенную точку.
+     */
+    function convertJsonFeatureToPoint (jsonFeature) {
+        var weight = 1;
+        if (jsonFeature.properties && jsonFeature.properties.weight) {
+            weight = jsonFeature.properties.weight;
+        }
+        return {
+            coordinates: jsonFeature.geometry.coordinates,
+            weight: weight
+        };
+    }
+
+    /**
+     * @function isJsonFeatureCollection
+     * @description Проверяет является ли переданный объект JSON-описанием коллекции сущностей.
+     */
+    function isJsonFeatureCollection (object) {
+        return object.type == 'FeatureCollection';
+    }
+
+    /**
+     * @function isCoordinates
+     * @description Проверяет является ли переданный объект координатами точки ([x1, y1]).
+     */
+    function isCoordinates (object) {
+        return (Object.prototype.toString.call(object) == '[object Array]') &&
+            (typeof object[0] == 'number') &&
+            (typeof object[1] == 'number');
+    }
+
+    /**
+     * @function convertCoordinatesToPoint
+     * @description Конвертирует geoObject в взвешенную точку.
+     */
+    function convertCoordinatesToPoint (coordinates) {
+        return {
+            coordinates: coordinates,
+            weight: 1
+        };
+    }
+
+    /**
+     * @function isJsonGeometry
+     * @description Проверяет является ли переданный объект JSON-описанием геометрии.
+     */
+    function isJsonGeometry (object) {
+        return !!(object.type && object.coordinates);
+    }
+
+    /**
+     * @function isGeoObject
+     * @description Проверяет является ли переданный объект инстанцией геообъекта.
+     *
+     * @param {Object} object Произвольный объект.
+     * @returns {Boolean}
+     */
+    function isGeoObject (object) {
+        return !!(object.geometry && object.getOverlay);
+    }
+
+    /**
+     * @function convertGeoObjectToPoint
+     * @description Конвертирует geoObject типа Point в взвешенную точку.
+     */
+    function convertGeoObjectToPoint (geoObject) {
+        return {
+            coordinates: geoObject.geometry.getCoordinates(),
+            weight: geoObject.properties.get('weight') || 1
+        };
+    }
+
+    /**
+     * @function isCollection
+     * @description Проверяет является ли переданный объект инстанцией коллекции.
+     */
+    function isCollection (object) {
+        return !!object.getIterator;
+    }
 
     provide(Heatmap);
 });

@@ -39,7 +39,7 @@ _setupOptionMonitor()
 
 **Returns**: Monitor, Монитор опций.
 
-_destoryOptionMonitor() 
+_destroyOptionMonitor() 
 -----------------------------
 Уничтожает монитор опций.
 

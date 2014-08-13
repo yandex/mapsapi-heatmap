@@ -22,16 +22,15 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @function TileUrlsGenerator
      * @description Конструктор генератора url тайлов тепловой карты.
      *
-     * @param {Object} projection Слой тепловой карты.
+     * @param {Object} projection Проекция.
      * @param {Array} points Массив точек в географических координатах.
      */
     var TileUrlsGenerator = function (projection, points) {
-        this._canvas = new HeatmapCanvas(TILE_SIZE);
+        this._projection = projection;
 
+        this._canvas = new HeatmapCanvas(TILE_SIZE);
         this.options = new OptionManager({});
         this._canvas.options.setParent(this.options);
-
-        this._projection = projection;
 
         this.setPoints(points || []);
     };
@@ -55,11 +54,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
             });
             weights.push(points[i].weight);
         }
-
-        weights = weights.sort();
-        var mediana = weights[Math.floor(weights.length / 2)];
-
-        this._canvas.options.set('medianaOfWeights', mediana);
+        this._canvas.options.set('medianaOfWeights', findMediana(weights));
 
         return this;
     };
@@ -92,8 +87,11 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @returns {String} dataUrl.
      */
     TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
-        if (this._canvas.options.get('pointRadiusFactor') != zoom) {
-            this._canvas.options.set('pointRadiusFactor', zoom);
+        if (
+            this.options.get('dissipating') &&
+            this._canvas.options.get('radiusFactor') != zoom
+        ) {
+            this._canvas.options.set('radiusFactor', zoom / 10);
         }
         var zoomFactor = Math.pow(2, zoom),
 
@@ -151,6 +149,28 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
             (point[1] >= bounds[0][1] - margin) &&
             (point[1] <= bounds[1][1] + margin);
     };
+
+    /**
+     * @function findMediana
+     * @description Ищет медиану в переданной выборке.
+     */
+    function findMediana (selection) {
+        var sortSelection = selection.sort(comparator),
+            center = sortSelection.length / 2;
+        if (center !== Math.floor(center)) {
+            return sortSelection[Math.floor(center)];
+        } else {
+            return (sortSelection[center - 1] + sortSelection[center]) / 2;
+        }
+    }
+
+    /**
+     * @function comparator
+     * @description Сравнивает два числа.
+     */
+    function comparator (a, b) {
+        return a - b;
+    }
 
     provide(TileUrlsGenerator);
 });

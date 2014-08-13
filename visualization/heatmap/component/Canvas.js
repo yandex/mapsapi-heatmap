@@ -18,14 +18,14 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      */
     var DEFAULT_OPTIONS = {
         // Минимальный радиус точки.
-        pointRadius: 1,
-        // Множитель для радиуса точки. Рассчитывается программно.
-        pointRadiusFactor: 1,
+        radius: 10,
+        // Множитель для радиуса точки.
+        radiusFactor: 1,
         // Прозрачность слоя карты.
         opacity: 0.6,
-        // Медиана цвета точек.
-        medianaOfGradient: 0.2,
-        // Медиана весов точек. Рассчитывается программно.
+        // Интенсивность медианной (по весу) точки.
+        intensityOfMidpoint: 0.2,
+        // Медиана весов точек.
         medianaOfWeights: 1,
         // Градиент, которым будут раскрашены точки.
         gradient: {
@@ -64,8 +64,8 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @returns {Number} margin.
      */
     Canvas.prototype.getBrushRadius = function () {
-        return this.options.get('pointRadius', DEFAULT_OPTIONS.pointRadius) *
-            this.options.get('pointRadiusFactor', DEFAULT_OPTIONS.pointRadiusFactor);
+        return this.options.get('radius', DEFAULT_OPTIONS.radius) *
+            this.options.get('radiusFactor', DEFAULT_OPTIONS.radiusFactor);
     };
 
     /**
@@ -88,7 +88,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @description Уничтожает внутренние данные.
      */
     Canvas.prototype.destroy = function () {
-        this._destoryOptionMonitor();
+        this._destroyOptionMonitor();
         this._destroyDrawTools();
     };
 
@@ -103,7 +103,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
         this._optionMonitor = new Monitor(this.options);
 
         return this._optionMonitor.add(
-            ['pointRadius', 'gradient', 'pointRadiusFactor'],
+            ['radius', 'radiusFactor', 'gradient'],
             this._setupDrawTools,
             this
         );
@@ -111,10 +111,10 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
 
     /**
      * @private
-     * @function _destoryOptionMonitor
+     * @function _destroyOptionMonitor
      * @description Уничтожает монитор опций.
      */
-    Canvas.prototype._destoryOptionMonitor = function () {
+    Canvas.prototype._destroyOptionMonitor = function () {
         this._optionMonitor.removeAll();
         this._optionMonitor = {};
     };
@@ -204,10 +204,17 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
     Canvas.prototype._drawHeatmap = function (points) {
         var context = this._context,
             radius = this.getBrushRadius(),
-            // Чтобы избежать полностью красной (последний уровень градиента) карты,
-            // медиана прозрачности точек не должна превышать 0.2-0.3.
-            weightFactor = this.options.get('medianaOfGradient', DEFAULT_OPTIONS.medianaOfGradient) /
-                this.options.get('medianaOfWeights', DEFAULT_OPTIONS.medianaOfWeights);
+
+            intensityOfMidpoint = this.options.get(
+                'intensityOfMidpoint',
+                DEFAULT_OPTIONS.intensityOfMidpoint
+            ),
+            medianaOfWeights = this.options.get(
+                'medianaOfWeights',
+                DEFAULT_OPTIONS.medianaOfWeights
+            ),
+            // Множитель для установки медианы интенсивности точек.
+            weightFactor = intensityOfMidpoint / medianaOfWeights;
 
         context.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
