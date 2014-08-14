@@ -1,3 +1,5 @@
+moved to [github.com/yandex/mapsapi-heatmap](https://github.com/yandex/mapsapi-heatmap)
+
 # Yandex Maps API Heatmap Module
 
 **Heatmap** is a graphical representation of some spatial data where density values are indicated with different colors.
@@ -5,7 +7,7 @@
 
 ## Loading
 
-1. Put module source code ([Heatmap.min.js](https://github.com/yandex/mapsapi-heatmap/blob/master/build/Heatmap.min.js)) on your CDN.
+1. Put module source code ([Heatmap.min.js](https://github.com/alt-j/ymaps-heatmap/blob/master/build/Heatmap.min.js)) on your CDN.
 
 2. Load both [Yandex Maps JS API 2.1](http://api.yandex.com/maps/doc/jsapi/) and module source code by adding following code into &lt;head&gt; section of your page
    ```html
@@ -159,3 +161,6 @@ Destroys `Heatmap` instance
       heatmap.setMap(myMap);
   });
   ```
+
+* [Demo](http://alt-j.github.io/ymaps-heatmap/)
+
