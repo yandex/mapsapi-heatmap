@@ -9,16 +9,16 @@
 
 2. Load both [Yandex Maps JS API 2.1](http://api.yandex.com/maps/doc/jsapi/) and module source code by adding following code into &lt;head&gt; section of your page
    ```html
-    <script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
-    <!-- Change my.cdn.tld to your CDN host name -->
-    <script src="http://my.cdn.tld/Heatmap.min.js" type="text/javascript"></script>
+   <script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+   <!-- Change my.cdn.tld to your CDN host name -->
+   <script src="http://my.cdn.tld/Heatmap.min.js" type="text/javascript"></script>
    ```
 
 3. Get access to module functions by using [ymaps.modules.require](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/modules.require.xml) method
    ```js
-    ymaps.modules.require(['Heatmap'], function (Heatmap) {
+   ymaps.modules.require(['Heatmap'], function (Heatmap) {
         var heatmap = new Heatmap();
-    });
+   });
    ```
 
 ## Heatmap constructor
@@ -90,47 +90,47 @@ Destroys `Heatmap` instance
 * Displaying heatmap over geographical map:
 
   ```js
-    ymaps.modules.require(['Heatmap'], function (Heatmap) {
-        var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
-            heatmap = new Heatmap(data);
-        heatmap.setMap(myMap);
-    });
+  ymaps.modules.require(['Heatmap'], function (Heatmap) {
+       var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
+           heatmap = new Heatmap(data);
+       heatmap.setMap(myMap);
+  });
   ```
 
 * Updating heatmap data:
 
   ```js
-    ymaps.modules.require(['Heatmap'], function (Heatmap) {
-        var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
-            heatmap = new Heatmap(data);
-        heatmap.setMap(myMap);
+  ymaps.modules.require(['Heatmap'], function (Heatmap) {
+      var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
+          heatmap = new Heatmap(data);
+      heatmap.setMap(myMap);
 
-        var newData = [[37.774546, -122.433523], [37.784546, -122.433523]];
-        heatmap.setData(newData);
-    });
+      var newData = [[37.774546, -122.433523], [37.784546, -122.433523]];
+      heatmap.setData(newData);
+  });
   ```
 
 * Changing heatmap representation options.
 
   ```js
-    ymaps.modules.require(['Heatmap'], function (Heatmap) {
-        var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
-            heatmap = new Heatmap(data);
-        // Heatmap becomes opaque
-        heatmap.options.set('opacity', 1);
-        heatmap.setMap(myMap);
-    });
+  ymaps.modules.require(['Heatmap'], function (Heatmap) {
+      var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
+          heatmap = new Heatmap(data);
+      // Heatmap becomes opaque
+      heatmap.options.set('opacity', 1);
+      heatmap.setMap(myMap);
+  });
   ```
 
   ```js
-    ymaps.modules.require(['Heatmap'], function (Heatmap) {
-        var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
-            heatmap = new Heatmap(data);
-        // Changing gradient
-        heatmap.options.set('gradient', {
-            '0.1': 'lime',
-            '0.9': 'red'
-        });
-        heatmap.setMap(myMap);
-    });
+  ymaps.modules.require(['Heatmap'], function (Heatmap) {
+      var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
+          heatmap = new Heatmap(data);
+      // Changing gradient
+      heatmap.options.set('gradient', {
+          '0.1': 'lime',
+          '0.9': 'red'
+      });
+      heatmap.setMap(myMap);
+  });
   ```
