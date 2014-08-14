@@ -28,10 +28,10 @@
 | data | - | Type: Object.<br>Points description in one of following formats:<ul><li>Number[][] - coordinates array;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml) - object implementing `IGeoObject` interface;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml)[] - array of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml) - collection of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml)[] - array of collection of objects implementing `IGeoObject` interface;</li><li>[GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) - result of [geoQuery](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/geoQuery.xml) execution;</li><li>Any - JSON representation of data according to [GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) input data format.</li> |
 |  options |  - | Type: Object.<br>Heatmap representation options. |
 |  options.radius |  10 | Type: Number.<br>Point radius of influence (px). |
-|  options.dissipating |  false | Type: Boolean.<br>`true` - disperse points on higher zoom levels according to radius (point radius equals `radius * zoom / 10`), `falsa` - doesn't disperse. |
+|  options.dissipating |  false | Type: Boolean.<br>`true` - disperse points on higher zoom levels according to radius (point radius equals `radius * zoom / 10`), `false` - doesn't disperse. |
 |  options.opacity |  0.6 | Type: Number.<br>Heatmap opacity (from 0 to 1). |
 |  options.intensityOfMidpoint |  0.2 | Type: Number.<br>Intensity of median point (from 0 to 1). |
-|  options.gradient | {0.1:'rgba(128,255,0,1)',<br>0.2:'rgba(255,255,0,1)',<br>0.7:'rgba(234,72,58,1)',<br>1.0:'rgba(162,36,25,1)'} | Type: Object.<br>JSON description of gradient. |
+|  options.gradient | {<br>&nbsp;&nbsp;&nbsp;&nbsp;0.1:&nbsp;'rgba(128,&nbsp;255,&nbsp;0,&nbsp;1)',<br>&nbsp;&nbsp;&nbsp;&nbsp;0.2:&nbsp;'rgba(255,&nbsp;255,&nbsp;0,&nbsp;1)',<br>&nbsp;&nbsp;&nbsp;&nbsp;0.7:&nbsp;'rgba(234,&nbsp;72,&nbsp;58,&nbsp;1)',<br>&nbsp;&nbsp;&nbsp;&nbsp;1.0:&nbsp;'rgba(162,&nbsp;36,&nbsp;25,&nbsp;1)'<br>} | Type: Object.<br>JSON description of gradient. |
 
 ## Properties
 
@@ -92,6 +92,31 @@ Destroys `Heatmap` instance
   ```js
   ymaps.modules.require(['Heatmap'], function (Heatmap) {
        var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
+           heatmap = new Heatmap(data);
+       heatmap.setMap(myMap);
+  });
+  ```
+
+  ```js
+  ymaps.modules.require(['Heatmap'], function (Heatmap) {
+       var data = {
+                type: 'FeatureCollection',
+                features: [{
+                    id: 'id1',
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [37.782551, -122.445368]
+                    }
+                }, {
+                    id: 'id2',
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [37.782745, -122.444586]
+                    }
+                }]
+            },
            heatmap = new Heatmap(data);
        heatmap.setMap(myMap);
   });
