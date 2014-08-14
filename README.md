@@ -160,5 +160,5 @@ Destroys `Heatmap` instance
   });
   ```
 
-* [Demo](http://alt-j.github.io/ymaps-heatmap/)
+* [Demo](http://yandex.github.io/mapsapi-heatmap/)
 
