@@ -1,18 +1,18 @@
 /**
  * Модуль для нанесения слоя тепловой карты.
- * @module visualization.Heatmap
+ * @module Heatmap
  * @requires util.math.areEqual
  * @requires option.Manager
  * @requires Monitor
  * @requires Layer
- * @requires visualization.heatmap.component.TileUrlsGenerator
+ * @requires heatmap.component.TileUrlsGenerator
  */
-ymaps.modules.define('visualization.Heatmap', [
+ymaps.modules.define('Heatmap', [
     'util.math.areEqual',
     'option.Manager',
     'Monitor',
     'Layer',
-    'visualization.heatmap.component.TileUrlsGenerator'
+    'heatmap.component.TileUrlsGenerator'
 ], function (
     provide,
     areEqual,
@@ -26,7 +26,8 @@ ymaps.modules.define('visualization.Heatmap', [
      * @function Heatmap
      * @description Конструктор тепловой карты.
      *
-     * @param {Object} data Источник геообъектов.
+     * @param {Object} data Точки в одном из форматов:
+     * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
      * @param {Object} options Объект с опциями отображения тепловой карты:
      *  radius - радиус влияния (в пикселях) для каждой точки данных;
      *  dissipating - указывает, следует ли рассредоточивать данные тепловой карты при
@@ -59,7 +60,7 @@ ymaps.modules.define('visualization.Heatmap', [
     /**
      * @public
      * @function setData
-     * @description Добавляет данные (точки), которые будут нанесены
+     * @description Устанавливает данные (точки), которые будут нанесены
      * на карту. Если слой уже отрисован, то любые последующие манипуляции с
      * данными приводят к его перерисовке.
      *

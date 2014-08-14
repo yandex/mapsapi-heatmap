@@ -1,10 +1,10 @@
 /**
  * Модуль отрисовки тепловой карты на canvas'e. Позволяет получить карту в формате dataURL.
- * @module visualization.heatmap.component.Canvas
+ * @module heatmap.component.Canvas
  * @requires option.Manager
  * @requires Monitor
  */
-ymaps.modules.define('visualization.heatmap.component.Canvas', [
+ymaps.modules.define('heatmap.component.Canvas', [
     'option.Manager',
     'Monitor'
 ],  function (
@@ -17,7 +17,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @description Настройки карты по умолчанию.
      */
     var DEFAULT_OPTIONS = {
-        // Минимальный радиус точки.
+        // Радиус точки.
         radius: 10,
         // Множитель для радиуса точки.
         radiusFactor: 1,
@@ -73,7 +73,7 @@ ymaps.modules.define('visualization.heatmap.component.Canvas', [
      * @function generateDataURLHeatmap
      * @description Получение карты в виде dataURL с нанесенными точками.
      *
-     * @param {Object[]} points Массив точек [[x1, y1], [x2, y2], ...].
+     * @param {Number[][]} points Массив точек [[x1, y1], [x2, y2], ...].
      * @returns {String} dataURL.
      */
     Canvas.prototype.generateDataURLHeatmap = function (points) {

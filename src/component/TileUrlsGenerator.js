@@ -1,12 +1,12 @@
 /**
  * Модуль для генерации тайлов тепловой карты.
- * @module visualization.heatmap.component.TileUrlsGenerator
+ * @module heatmap.component.TileUrlsGenerator
  * @requires option.Manager
- * @requires visualization.heatmap.component.Canvas
+ * @requires heatmap.component.Canvas
  */
-ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
+ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     'option.Manager',
-    'visualization.heatmap.component.Canvas'
+    'heatmap.component.Canvas'
 ], function (
     provide,
     OptionManager,
@@ -23,7 +23,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @description Конструктор генератора url тайлов тепловой карты.
      *
      * @param {IProjection} projection Проекция.
-     * @param {Object[]} points Массив точек в географических координатах.
+     * @param {Number[][]} points Массив точек в географических координатах.
      */
     var TileUrlsGenerator = function (projection, points) {
         this._projection = projection;
@@ -40,7 +40,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @function setPoints
      * @description Устанавливает точки, которые будут нанесены на карту.
      *
-     * @param {Object[]} points Массив точек в географических координатах.
+     * @param {Number[][]} points Массив точек в географических координатах.
      * @returns {TileUrlsGenerator}
      */
     TileUrlsGenerator.prototype.setPoints = function (points) {
@@ -64,7 +64,7 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @function getPoints
      * @description Отдает точки в географических координатах.
      *
-     * @returns {Object[]} points Массив точек в географических координатах.
+     * @returns {Number[][]} points Массив точек в географических координатах.
      */
     TileUrlsGenerator.prototype.getPoints = function () {
         var points = [];
@@ -139,8 +139,8 @@ ymaps.modules.define('visualization.heatmap.component.TileUrlsGenerator', [
      * @description Проверка попадаения точки в границы карты.
      *
      * @param {Number[][]} bounds Область, в которую попадание проверяется.
-     * @param {Number[]} point Точка в географических координатах.
-     * @param {Number} margin Необязательный параметр, если нужно расширисть bounds.
+     * @param {Number[]} point Точка в глобальных пиксельных координатах.
+     * @param {Number} margin Необязательный параметр, если нужно расширить bounds.
      * @returns {Boolean} True - попадает.
      */
     TileUrlsGenerator.prototype._contains = function (bounds, point, margin) {

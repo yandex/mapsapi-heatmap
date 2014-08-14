@@ -8,9 +8,9 @@ describe('Heatmap', function () {
         })
     });
 
-    describe('#_convertDataToPointsArray()', function () {
+    describe('convert different types of data to array of points', function () {
         it('convert from JsonFeature', function () {
-            modules.require(['visualization.Heatmap'], function (Heatmap) {
+            modules.require(['Heatmap'], function (Heatmap) {
                 var data = {
                         id: 'id',
                         type: 'Feature',
@@ -26,7 +26,7 @@ describe('Heatmap', function () {
         });
 
         it('convert from JsonFeatureCollection', function () {
-            modules.require(['visualization.Heatmap'], function (Heatmap) {
+            modules.require(['Heatmap'], function (Heatmap) {
                 var data = {
                         type: 'FeatureCollection',
                         features: [{
@@ -45,7 +45,7 @@ describe('Heatmap', function () {
         });
 
         it('convert from Number[]', function () {
-            modules.require(['visualization.Heatmap'], function (Heatmap) {
+            modules.require(['Heatmap'], function (Heatmap) {
                 var data = [21,21],
                     heatmap = new Heatmap(data);
                 chai.expect(heatmap._unprocessedPoints[0].coordinates)
@@ -54,7 +54,7 @@ describe('Heatmap', function () {
         });
 
         it('convert from Number[][]', function () {
-            modules.require(['visualization.Heatmap'], function (Heatmap) {
+            modules.require(['Heatmap'], function (Heatmap) {
                 var data = [[21,21]],
                     heatmap = new Heatmap(data);
                 chai.expect(heatmap._unprocessedPoints[0].coordinates)
@@ -63,7 +63,7 @@ describe('Heatmap', function () {
         });
 
         it('convert from JsonGeometry', function () {
-            modules.require(['visualization.Heatmap'], function (Heatmap) {
+            modules.require(['Heatmap'], function (Heatmap) {
                 var data = { type: 'Point', coordinates: [21,21] },
                     heatmap = new Heatmap(data);
                 chai.expect(heatmap._unprocessedPoints[0].coordinates)
@@ -72,7 +72,7 @@ describe('Heatmap', function () {
         });
 
         it('convert from GeoObject', function () {
-            modules.require(['visualization.Heatmap'], function (Heatmap) {
+            modules.require(['Heatmap'], function (Heatmap) {
                 var data = new ymaps.Placemark([21,21]),
                     heatmap = new Heatmap(data);
                 chai.expect(heatmap._unprocessedPoints[0].coordinates)
@@ -81,7 +81,7 @@ describe('Heatmap', function () {
         });
 
         it('convert from IGeoObject[]', function () {
-            modules.require(['visualization.Heatmap'], function (Heatmap) {
+            modules.require(['Heatmap'], function (Heatmap) {
                 var data = [new ymaps.Placemark([21,21])],
                     heatmap = new Heatmap(data);
                 chai.expect(heatmap._unprocessedPoints[0].coordinates)
@@ -90,7 +90,7 @@ describe('Heatmap', function () {
         });
 
         it('convert from IGeoObjectCollection', function () {
-            modules.require(['visualization.Heatmap'], function (Heatmap) {
+            modules.require(['Heatmap'], function (Heatmap) {
                 var data = new ymaps.GeoObjectCollection(
                         new ymaps.Placemark([21,21])
                     ),
@@ -101,7 +101,7 @@ describe('Heatmap', function () {
         });
 
         it('convert from nested IGeoObjectCollection', function () {
-            modules.require(['visualization.Heatmap'], function (Heatmap) {
+            modules.require(['Heatmap'], function (Heatmap) {
                 var data = new ymaps.GeoObjectCollection(
                         new ymaps.GeoObjectCollection(
                             new ymaps.Placemark([21,21])

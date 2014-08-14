@@ -16,7 +16,7 @@ module.exports = function(config) {
     files: [
       'node_modules/chai/chai.js',
       'http://api-maps.yandex.ru/2.1/?lang=ru-RU',
-      {pattern: 'visualization/**/*.js', include: true}
+      {pattern: 'src/**/*.js', include: true}
     ],
 
 
