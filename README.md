@@ -159,3 +159,6 @@ Destroys `Heatmap` instance
       heatmap.setMap(myMap);
   });
   ```
+
+* [Demo](http://alt-j.github.io/ymaps-heatmap/)
+

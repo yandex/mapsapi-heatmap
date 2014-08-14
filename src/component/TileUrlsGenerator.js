@@ -87,12 +87,15 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
      * @returns {String} dataUrl.
      */
     TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
-        if (
-            this.options.get('dissipating') &&
-            this._canvas.options.get('radiusFactor') != zoom
-        ) {
-            this._canvas.options.set('radiusFactor', zoom / 10);
+        var radiusFactor = this._canvas.options.get('radiusFactor');
+        if (this.options.get('dissipating')) {
+            if (radiusFactor != zoom) {
+                this._canvas.options.set('radiusFactor', zoom / 10);
+            }
+        } else if (radiusFactor) {
+            this._canvas.options.unset('radiusFactor');
         }
+
         var zoomFactor = Math.pow(2, zoom),
 
             tileBounds = [[
