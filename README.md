@@ -1,106 +1,98 @@
-# Heatmap
+# Yandex Maps API Heatmap module
 
-Модуль для создания слоя тепловой карты (теплокарта).
+**Heatmap** is a graphical representation of some spatial data where density values are indicated with different colors.
+`Heatmap` class allows to construct and display such representations over geographical maps.
 
-**Теплокарта** — это графическое представление данных, где дополнительные переменные отображаются при помощи цвета.
-Позволяет по заданному набору географических координат сгенерировать слой тепловой карт.
+## Loading
 
-## Подключение
+1. Put module source code ([Heatmap.min.js](https://github.com/yandex/mapsapi-heatmap/blob/master/build/Heatmap.min.js)) on your CDN.
 
-1. Сохраните себе исходный код модуля [Heatmap.min.js](https://github.com/yandex/mapsapi-heatmap/blob/master/build/Heatmap.min.js).
-
-2. Прежде чем использовать функции модуля, необходимо загрузить в браузер JavaScript-файл, в котором этот модуль определен. Для этого добавьте в заголовок head HTML-страницы строку следующего вида:
+2. Load both Yandex Maps API and module source code by adding following code into &lt;head&gt; section of your page
 ```
 <head>
     ...
     <script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
-    <script src="Heatmap.min.js" type="text/javascript"></script>
+    <script src="http://my.cdn.tld/Heatmap.min.js" type="text/javascript"></script>
     ...
 </head>
 ```
-При необходимости, исправьте путь к файлу Heatmap.min.js.
+Change path to Heatmap.min.js according to your CDN host name.
 
-3. Внешние модули не дописываются в неймспейс ymaps, поэтому доступ к ним можно получить асинхронно через метод [ymaps.modules.require](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/modules.require.xml)
+3. Get access to module functions by using `modules.require` method
+[ymaps.modules.require](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/modules.require.xml)
 ```
 ymaps.modules.require(['Heatmap'], function (Heatmap) {
     var heatmap = new Heatmap();
 });
 ```
 
-## Конструктор
+## Heatmap constructor
 
-| Параметр| Значение по умолчанию | Описание |
+| Parameter | Default value | Decription |
 |---------|-----------------------|----------|
-| data | - | Тип: Object.<br>Точки в одном из форматов:<ul><li>Number[][] - массив координат;</li><li>[IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml) - объект, реализующий соответствующий интерфейс;</li><li>[IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml)[] - массив объектов, реализующих соответствующий интерфейс;</li><li>[ICollection](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/ICollection.xml) - коллекция объектов, реализующих интерфейс [IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml);</li><li>[ICollection](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/ICollection.xml)[] - массив коллекций объектов, реализующих интерфейс IGeoObject;</li><li>[GeoQueryResult](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) - объект класса GeoQueryResult;</li><li>String &#124; Object - строка или объект с JSON-описанием объектов.</li> |
-|  options |  - | Тип: Object.<br>Настройки отображения тепловой карты. |
-|  options.radius |  10 | Тип: Number.<br>Радиус влияния (в пикселях) для каждой точки данных. |
-|  options.dissipating |  false | Тип: Boolean.<br>Указывает, следует ли рассредоточивать данные тепловой карты при уменьшении масштаба, если указано true, то радиус точки для n'го масштаба будет равен (radius * zoom / 10). По умолчанию опция отключена. |
-|  options.opacity |  0.6 | Тип: Number.<br>Прозрачность слоя карты (от 0 до 1). |
-|  options.intensityOfMidpoint |  0.2 | Тип: Number.<br>Интенсивность медианной (по весу) точки (от 0 до 1). |
-|  options.gradient |  {0.1:'rgba(128,255,0,1)',<br>0.2:'rgba(255,255,0,1)',<br>0.7:'rgba(234,72,58,1)',<br>1.0:'rgba(162,36,25,1)'} | Тип: Object.<br>Объект, задающий градиент. |
+| data | - | Type: Object.<br>Points descirption in one of following formats:<ul><li>Number[][] - coordinates array;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml) - object implementing `IGeoObject` interface;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml)[] - array of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml) - collection of objects imlementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml)[] - array of collection of objects implementing `IGeoObject` interface;</li><li>[GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) - result of [geoQuery](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/geoQuery.xml) execution;</li><li>Any - JSON representation of data according to [GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) input data format.</li> |
+|  options |  - | Type: Object.<br>Heatmap representation options. |
+|  options.radius |  10 | Type: Number.<br>Point radius of influence (px). |
+|  options.dissipating |  false | Type: Boolean.<br>`true` - disperse points on higher zoom levels according to radius (point radius equals `radius * zoom / 10`), `falsa` - doesn't disperse. Default value is `false`. |
+|  options.opacity |  0.6 | Type: Number.<br>Heatmap opacity (from 0 to 1). |
+|  options.intensityOfMidpoint |  0.2 | Type: Number.<br>Intensity of median point (from 0 to 1). |
+|  options.gradient | {0.1:'rgba(128,255,0,1)',<br>0.2:'rgba(255,255,0,1)',<br>0.7:'rgba(234,72,58,1)',<br>1.0:'rgba(162,36,25,1)'} | Type: Object.<br>JSON description of gradient. |
 
-## Поля
+## Properties
 
-| Имя| Тип | Описание |
+| Name| Type| Description|
 |----|-----|----------|
-| options | [option.Manager](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/option.Manager.xml) | Менеджер опций тепловой карты. |
+| options | [option.Manager](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/option.Manager.xml) | `Heatmap` object options manager. |
 
-## Методы
+## Methods
 
-| Имя| Возвращает | Описание |
+| Name| Returns | Description |
 |----|------------|----------|
-| [getData](#getdata) | Object &#124; null | Возвращает ссылку на объект данных, который был передан в конструктор или в метод [setData](#setdata). |
-|  [setData](#setdata) |  Heatmap | Добавляет данные (точки), которые будут нанесены на карту. Если слой уже отрисован, то любые последующие манипуляции с данными приводят к его перерисовке. |
-|  [getMap](#getmap) |  Map &#124; null | Возвращает ссылку на карту. |
-|  [setMap](#setmap) |  Heatmap | Устанавливает карту, на которой должна отобразиться тепловая карта. |
-|  [destroy](#destroy) |  - | Уничтожает внутренние данные слоя тепловой карты. |
+| [getData](#getdata) | Object &#124; null | Returns reference to data provided to constructor or [setData](#setdata) method. |
+| [setData](#setdata) | Heatmap | Adds new points. If `Heatmap` instance is already rendered, it will be re-rendered. |
+| [getMap](#getmap) |  Map &#124; null | Returns reference to [Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) object. |
+| [setMap](#setmap) |  Heatmap | Sets [Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) instance to render `Heatmap` object over it. |
+| [destroy](#destroy) | - | Destroys `Heatmap` object. |
 
 
 ### getData
-Отдает ссылку на объект данных, который был передан в конструктор или в метод setData.
-
-#### Возвращает:
-Отдает ссылку на объект данных, который был передан в конструктор или в метод setData.
-
+####Returns:
+reference to data provided to constructor or [setData](#setdata) method.
 
 ### setData
-Устанавливает данные (точки), которые будут нанесены на карту. Если слой уже отрисован, то любые последующие манипуляции с
-данными приводят к его перерисовке.
+Adds new points. If `Heatmap` instance is already rendered, it will be re-rendered.
 
-#### Возвращает:
-Cсылку на себя.
+#### Returns:
+Self-reference.
 
 #### Параметры:
-| Параметр | Значение по умолчанию | Описание |
-|----------|-----------------------|----------|
-| data | - | Тип: Object.<br>Точки в одном из форматов:<ul><li>Number[][] - массив координат;</li><li>[IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml) - объект, реализующий соответствующий интерфейс;</li><li>[IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml)[] - массив объектов, реализующих соответствующий интерфейс;</li><li>[ICollection](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/ICollection.xml) - коллекция объектов, реализующих интерфейс [IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml);</li><li>[ICollection](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/ICollection.xml)[] - массив коллекций объектов, реализующих интерфейс IGeoObject;</li><li>[GeoQueryResult](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) - объект класса GeoQueryResult;</li><li>String &#124; Object - строка или объект с JSON-описанием объектов.</li> |
+| Parameter | Default value | Description |
+|---------|-----------------------|----------|
+| data | - | Type: Object.<br>Points descirption in one of following formats:<ul><li>Number[][] - coordinates array;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml) - object implementing `IGeoObject` interface;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml)[] - array of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml) - collection of objects imlementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml)[] - array of collection of objects implementing `IGeoObject` interface;</li><li>[GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) - result of [geoQuery](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/geoQuery.xml) execution;</li><li>Any - JSON representation of data according to [GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) input data format.</li> |
 
 
 ### getMap
-Получение текущей карты, на которой отображена тепловая карта.
-
-#### Возвращает:
-Инстанцию ymaps.Map.
-
+#### Returns:
+reference to [Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) object.
 
 ### setMap
-Устанавливает карту, на которой должна отобразиться тепловая карта.
+Sets [Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) instance to render `Heatmap` object over it.
 
-#### Возвращает:
-Heatmap, Устанавливает карту, на которой должна отобразиться тепловая карта.
+#### Returns:
+self-reference.
 
 #### Параметры:
-| Параметр | Значение по умолчанию | Описание |
+| Parameter | Default value | Description |
 |----------|-----------------------|----------|
-| map | - | Инстанция ymaps.Map, на которую будет добавлен слой тепловой карты. |
+| map | - | Type:Map<br/>[Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) instance to render `Heatmap` object over it. |
 
 
 ### destroy
-Уничтожает внутренние данные слоя тепловой карты.
+Destroys `Heatmap` object
 
-## Примеры
+## Examples
 
-* Нанесение слоя на карту.
+* Displaying heatmap over geographical map:
 
 ```
 ymaps.modules.require(['Heatmap'], function (Heatmap) {
@@ -110,7 +102,7 @@ ymaps.modules.require(['Heatmap'], function (Heatmap) {
 });
 ```
 
-* Обновление данных на тепловой карте.
+* Updating heatmap data:
 
 ```
 ymaps.modules.require(['Heatmap'], function (Heatmap) {
@@ -123,13 +115,13 @@ ymaps.modules.require(['Heatmap'], function (Heatmap) {
 });
 ```
 
-* Изменение параметров отображения тепловой карты.
+* Changing heatmap representation options.
 
 ```
 ymaps.modules.require(['Heatmap'], function (Heatmap) {
     var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
         heatmap = new Heatmap(data);
-    // Тепловая карта станет непрозрачной.
+    // Heatmap becomes opaque
     heatmap.options.set('opacity', 1);
     heatmap.setMap(myMap);
 });
@@ -139,7 +131,7 @@ ymaps.modules.require(['Heatmap'], function (Heatmap) {
 ymaps.modules.require(['Heatmap'], function (Heatmap) {
     var data = [[37.782551, -122.445368], [37.782745, -122.444586]],
         heatmap = new Heatmap(data);
-    // Изменение градиента.
+    // Changing gradient
     heatmap.options.set('gradient', {
         '0.1': 'lime',
         '0.9': 'red'
