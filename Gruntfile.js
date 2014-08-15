@@ -7,7 +7,9 @@ module.exports = function (grunt) {
             build: {
                 src: [
                     'src/Heatmap.js',
-                    'src/component/*.js',
+                    'src/component/dataConverter.js',
+                    'src/component/TileUrlsGenerator.js',
+                    'src/component/Canvas.js'
                 ],
                 dest: 'build/Heatmap.js'
             }

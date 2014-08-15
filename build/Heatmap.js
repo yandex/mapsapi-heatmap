@@ -4,18 +4,21 @@
  * @requires option.Manager
  * @requires Monitor
  * @requires Layer
+ * @requires heatmap.component.dataConverter
  * @requires heatmap.component.TileUrlsGenerator
  */
 ymaps.modules.define('Heatmap', [
     'option.Manager',
     'Monitor',
     'Layer',
+    'heatmap.component.dataConverter',
     'heatmap.component.TileUrlsGenerator'
 ], function (
     provide,
     OptionManager,
     Monitor,
     Layer,
+    dataConverter,
     TileUrlsGenerator
 ) {
     /**
@@ -24,7 +27,7 @@ ymaps.modules.define('Heatmap', [
      * @description Конструктор тепловой карты.
      *
      * @param {Object} data Точки в одном из форматов:
-     * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
+     *  IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
      * @param {Object} options Объект с опциями отображения тепловой карты:
      *  radius - радиус влияния (в пикселях) для каждой точки данных;
      *  dissipating - указывает, следует ли рассредоточивать данные тепловой карты при
@@ -47,7 +50,7 @@ ymaps.modules.define('Heatmap', [
      * @public
      * @function getData
      * @description Отдает ссылку на объект данных, который был передан
-     * в конструктор или в метод setData.
+     *  в конструктор или в метод setData.
      * @returns {Object|null}
      */
     Heatmap.prototype.getData = function () {
@@ -58,17 +61,17 @@ ymaps.modules.define('Heatmap', [
      * @public
      * @function setData
      * @description Устанавливает данные (точки), которые будут нанесены
-     * на карту. Если слой уже отрисован, то любые последующие манипуляции с
-     * данными приводят к его перерисовке.
+     *  на карту. Если слой уже отрисован, то любые последующие манипуляции с
+     *  данными приводят к его перерисовке.
      *
      * @param {Object} data Точки в одном из форматов:
      * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
      * @returns {Heatmap}
      */
     Heatmap.prototype.setData = function (data) {
-        var points = this._convertDataToPointsArray(data);
         this._data = data;
 
+        var points = dataConverter.convert(data);
         if (this._tileUrlsGenerator) {
             this._tileUrlsGenerator.setPoints(points);
             this._refresh();
@@ -120,57 +123,6 @@ ymaps.modules.define('Heatmap', [
     Heatmap.prototype.destroy = function () {
         this._data = null;
         this.setMap(null);
-    };
-
-    /**
-     * @private
-     * @function _convertDataToPointsArray
-     * @description Создает массив взвешенных точек из входящих данных.
-     *
-     * @param {Object} data Точки в одном из форматов:
-     * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
-     * @returns {Array} points Массив взвешенных точек.
-     */
-    Heatmap.prototype._convertDataToPointsArray = function (data) {
-        var points = [];
-
-        if (typeof object == 'string') {
-            data = JSON.parse(data);
-        }
-
-        if (isJsonFeature(data) && data.geometry.type == 'Point') {
-            points.push(convertJsonFeatureToPoint(data));
-        } else if (isJsonFeatureCollection(data)) {
-            for (var i = 0, l = data.features.length; i < l; i++) {
-                points = points.concat(
-                    this._convertDataToPointsArray(data.features[i])
-                );
-            }
-        } else if (isCoordinates(data)) {
-            points.push(convertCoordinatesToPoint(data));
-        } else {
-            var dataArray = [].concat(data);
-            for (var i = 0, l = dataArray.length, item; i < l; i++) {
-                item = dataArray[i];
-                if (isCoordinates(item)) {
-                    points.push(convertCoordinatesToPoint(item));
-                } else if (isJsonGeometry(item) && item.type == 'Point') {
-                    points.push(convertCoordinatesToPoint(item.coordinates));
-                } else if (isGeoObject(item) && item.geometry.getType() == 'Point') {
-                    points.push(convertGeoObjectToPoint(item));
-                } else if (isCollection(item)) {
-                    var iterator = item.getIterator(),
-                        geoObject;
-                    while ((geoObject = iterator.getNext()) != iterator.STOP_ITERATION) {
-                        // Выполняем рекурсивно на случай вложенных коллекций.
-                        points = points.concat(
-                            this._convertDataToPointsArray(geoObject)
-                        );
-                    }
-                }
-            }
-        }
-        return points;
     };
 
     /**
@@ -272,19 +224,90 @@ ymaps.modules.define('Heatmap', [
         this._optionMonitor = {};
     };
 
-    /**
-     * @function isJsonFeature
-     * @description Проверяет является ли переданный объект JSON-описанием сущности.
-     */
-    function isJsonFeature (object) {
-        return object.type == 'Feature';
-    }
+    provide(Heatmap);
+});
+
+/**
+ * Модуль для преобразования точек из разных форматов в массив взвешенных точек.
+ * @module heatmap.component.dataConverter
+ */
+ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
+    var dataConverter = {};
 
     /**
-     * @function convertJsonFeatureToPoint
-     * @description Конвертирует jsonFeature в взвешенную точку.
+     * @public
+     * @function convert
+     * @description Создает массив взвешенных точек из входящих данных.
+     *
+     * @param {Object} data Точки в одном из форматов:
+     *  IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
+     * @returns {Array} points Массив взвешенных точек.
      */
-    function convertJsonFeatureToPoint (jsonFeature) {
+    dataConverter.convert = function (data) {
+        var points = [];
+
+        if (typeof object == 'string') {
+            data = JSON.parse(data);
+        }
+
+        if (this._isJsonFeature(data) && data.geometry.type == 'Point') {
+            points.push(this._convertJsonFeatureToPoint(data));
+        } else if (this._isJsonFeatureCollection(data)) {
+            for (var i = 0, l = data.features.length; i < l; i++) {
+                points = points.concat(
+                    this.convert(data.features[i])
+                );
+            }
+        } else if (this._isCoordinates(data)) {
+            points.push(this._convertCoordinatesToPoint(data));
+        } else {
+            var dataArray = [].concat(data);
+            for (var i = 0, l = dataArray.length, item; i < l; i++) {
+                item = dataArray[i];
+                if (this._isCoordinates(item)) {
+                    points.push(this._convertCoordinatesToPoint(item));
+                } else if (this._isJsonGeometry(item) && item.type == 'Point') {
+                    points.push(
+                        this._convertCoordinatesToPoint(item.coordinates)
+                    );
+                } else if (this._isGeoObject(item) && item.geometry.getType() == 'Point') {
+                    points.push(this._convertGeoObjectToPoint(item));
+                } else if (this._isCollection(item)) {
+                    var iterator = item.getIterator(),
+                        geoObject;
+                    while ((geoObject = iterator.getNext()) != iterator.STOP_ITERATION) {
+                        // Выполняем рекурсивно на случай вложенных коллекций.
+                        points = points.concat(
+                            this.convert(geoObject)
+                        );
+                    }
+                }
+            }
+        }
+        return points;
+    };
+
+    /**
+     * @private
+     * @function _isJsonFeature
+     * @description Проверяет является ли переданный объект JSON-описанием сущности.
+     *
+     * @param {Object} object Произвольный объект.
+     * @returns {Boolean}
+     */
+    dataConverter._isJsonFeature = function (object) {
+        return object.type == 'Feature';
+    };
+
+    /**
+     * @private
+     * @function _convertJsonFeatureToPoint
+     * @description Конвертирует jsonFeature в взвешенную точку.
+     *
+     * @param {JSON} jsonFeature Описание точки в JSON-формате.
+     * @returns {Object} Взвешенная точка.
+     */
+    dataConverter._convertJsonFeatureToPoint = function (jsonFeature) {
         var weight = 1;
         if (jsonFeature.properties && jsonFeature.properties.weight) {
             weight = jsonFeature.properties.weight;
@@ -293,76 +316,281 @@ ymaps.modules.define('Heatmap', [
             coordinates: jsonFeature.geometry.coordinates,
             weight: weight
         };
-    }
+    };
 
     /**
-     * @function isJsonFeatureCollection
+     * @private
+     * @function _isJsonFeatureCollection
      * @description Проверяет является ли переданный объект JSON-описанием коллекции сущностей.
+     *
+     * @param {Object} object Произвольный объект.
+     * @returns {Boolean}
      */
-    function isJsonFeatureCollection (object) {
+    dataConverter._isJsonFeatureCollection = function (object) {
         return object.type == 'FeatureCollection';
-    }
+    };
 
     /**
-     * @function isCoordinates
+     * @private
+     * @function _isCoordinates
      * @description Проверяет является ли переданный объект координатами точки ([x1, y1]).
+     *
+     * @param {Object} object Произвольный объект.
+     * @returns {Boolean}
      */
-    function isCoordinates (object) {
+    dataConverter._isCoordinates = function (object) {
         return (Object.prototype.toString.call(object) == '[object Array]') &&
             (typeof object[0] == 'number') &&
             (typeof object[1] == 'number');
-    }
+    };
 
     /**
-     * @function convertCoordinatesToPoint
+     * @private
+     * @function _convertCoordinatesToPoint
      * @description Конвертирует geoObject в взвешенную точку.
+     *
+     * @param {Number[]} coordinates Координаты точки.
+     * @returns {Object} Взвешенная точка.
      */
-    function convertCoordinatesToPoint (coordinates) {
+    dataConverter._convertCoordinatesToPoint = function (coordinates) {
         return {
             coordinates: coordinates,
             weight: 1
         };
-    }
+    };
 
     /**
-     * @function isJsonGeometry
+     * @private
+     * @function _isJsonGeometry
      * @description Проверяет является ли переданный объект JSON-описанием геометрии.
+     *
+     * @param {Object} object Произвольный объект.
+     * @returns {Boolean}
      */
-    function isJsonGeometry (object) {
+    dataConverter._isJsonGeometry = function (object) {
         return !!(object.type && object.coordinates);
-    }
+    };
 
     /**
-     * @function isGeoObject
+     * @private
+     * @function _isGeoObject
      * @description Проверяет является ли переданный объект инстанцией геообъекта.
      *
      * @param {Object} object Произвольный объект.
      * @returns {Boolean}
      */
-    function isGeoObject (object) {
+    dataConverter._isGeoObject = function (object) {
         return !!(object.geometry && object.getOverlay);
-    }
+    };
 
     /**
-     * @function convertGeoObjectToPoint
+     * @private
+     * @function _convertGeoObjectToPoint
      * @description Конвертирует geoObject типа Point в взвешенную точку.
+     *
+     * @param {IGeoObject} geoObject Геообъект с геометрией Point.
+     * @returns {Object} Взвешенная точка.
      */
-    function convertGeoObjectToPoint (geoObject) {
+    dataConverter._convertGeoObjectToPoint = function (geoObject) {
         return {
             coordinates: geoObject.geometry.getCoordinates(),
             weight: geoObject.properties.get('weight') || 1
         };
+    };
+
+    /**
+     * @private
+     * @function _isCollection
+     * @description Проверяет является ли переданный объект инстанцией коллекции.
+     *
+     * @param {Object} object Произвольный объект.
+     * @returns {Boolean}
+     */
+    dataConverter._isCollection = function (object) {
+        return !!object.getIterator;
+    };
+
+    provide(dataConverter);
+});
+
+/**
+ * Модуль для генерации тайлов тепловой карты.
+ * @module heatmap.component.TileUrlsGenerator
+ * @requires option.Manager
+ * @requires heatmap.component.Canvas
+ */
+ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
+    'option.Manager',
+    'heatmap.component.Canvas'
+], function (
+    provide,
+    OptionManager,
+    HeatmapCanvas
+) {
+    /**
+     * Размер тайла карты.
+     */
+    var TILE_SIZE = [256, 256];
+
+    /**
+     * @public
+     * @function TileUrlsGenerator
+     * @description Конструктор генератора url тайлов тепловой карты.
+     *
+     * @param {IProjection} projection Проекция.
+     * @param {Number[][]} points Массив точек в географических координатах.
+     */
+    var TileUrlsGenerator = function (projection, points) {
+        this._projection = projection;
+
+        this._canvas = new HeatmapCanvas(TILE_SIZE);
+        this.options = new OptionManager({});
+        this._canvas.options.setParent(this.options);
+
+        this.setPoints(points || []);
+    };
+
+    /**
+     * @public
+     * @function setPoints
+     * @description Устанавливает точки, которые будут нанесены на карту.
+     *
+     * @param {Number[][]} points Массив точек в географических координатах.
+     * @returns {TileUrlsGenerator}
+     */
+    TileUrlsGenerator.prototype.setPoints = function (points) {
+        this._points = [];
+
+        var weights = [];
+        for (var i = 0, length = points.length; i < length; i++) {
+            this._points.push({
+                coordinates: this._projection.toGlobalPixels(points[i].coordinates, 0),
+                weight: points[i].weight
+            });
+            weights.push(points[i].weight);
+        }
+        this._canvas.options.set('medianaOfWeights', findMediana(weights));
+
+        return this;
+    };
+
+    /**
+     * @public
+     * @function getPoints
+     * @description Отдает точки в географических координатах.
+     *
+     * @returns {Number[][]} points Массив точек в географических координатах.
+     */
+    TileUrlsGenerator.prototype.getPoints = function () {
+        var points = [];
+        for (var i = 0, length = this._points.length; i < length; i++) {
+            points.push({
+                coordinates: this._projection.fromGlobalPixels(this._points[i].coordinates, 0),
+                weight: this._points[i].weight
+            });
+        }
+        return points;
+    };
+
+    /**
+     * @public
+     * @function getTileUrl
+     * @description Возвращает URL тайла по его номеру и уровню масштабирования.
+     *
+     * @param {Number[]} tileNumber Номер тайла [x, y].
+     * @param {Number} zoom Зум тайла.
+     * @returns {String} dataUrl.
+     */
+    TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
+        var radiusFactor = this._canvas.options.get('radiusFactor');
+        if (this.options.get('dissipating')) {
+            if (radiusFactor != zoom) {
+                this._canvas.options.set('radiusFactor', zoom / 10);
+            }
+        } else if (radiusFactor) {
+            this._canvas.options.unset('radiusFactor');
+        }
+
+        var zoomFactor = Math.pow(2, zoom),
+
+            tileBounds = [[
+                tileNumber[0] * TILE_SIZE[0] / zoomFactor,
+                tileNumber[1] * TILE_SIZE[1] / zoomFactor
+            ], [
+                (tileNumber[0] + 1) * TILE_SIZE[0] / zoomFactor,
+                (tileNumber[1] + 1) * TILE_SIZE[1] / zoomFactor
+            ]],
+            tileMargin = this._canvas.getBrushRadius(),
+
+            points = [];
+        for (var i = 0, length = this._points.length, point; i < length; i++) {
+            point = this._points[i].coordinates;
+            if (this._contains(tileBounds, point, tileMargin)) {
+                points.push({
+                    coordinates: [
+                        (point[0] - tileBounds[0][0]) * zoomFactor,
+                        (point[1] - tileBounds[0][1]) * zoomFactor
+                    ],
+                    weight: this._points[i].weight
+                });
+            }
+        }
+
+        return this._canvas.generateDataURLHeatmap(points);
+    };
+
+    /**
+     * @public
+     * @function destroy
+     * @description Уничтожает внутренние данные генератора.
+     */
+    TileUrlsGenerator.prototype.destroy = function () {
+        this._canvas.destroy();
+        this._canvas = null;
+
+        this._projection = null;
+    };
+
+    /**
+     * @private
+     * @function _isPointInBounds
+     * @description Проверка попадаения точки в границы карты.
+     *
+     * @param {Number[][]} bounds Область, в которую попадание проверяется.
+     * @param {Number[]} point Точка в глобальных пиксельных координатах.
+     * @param {Number} margin Необязательный параметр, если нужно расширить bounds.
+     * @returns {Boolean} True - попадает.
+     */
+    TileUrlsGenerator.prototype._contains = function (bounds, point, margin) {
+        return (point[0] >= bounds[0][0] - margin) &&
+            (point[0] <= bounds[1][0] + margin) &&
+            (point[1] >= bounds[0][1] - margin) &&
+            (point[1] <= bounds[1][1] + margin);
+    };
+
+    /**
+     * @function findMediana
+     * @description Ищет медиану в переданной выборке.
+     */
+    function findMediana (selection) {
+        var sortSelection = selection.sort(comparator),
+            center = sortSelection.length / 2;
+        if (center !== Math.floor(center)) {
+            return sortSelection[Math.floor(center)];
+        } else {
+            return (sortSelection[center - 1] + sortSelection[center]) / 2;
+        }
     }
 
     /**
-     * @function isCollection
-     * @description Проверяет является ли переданный объект инстанцией коллекции.
+     * @function comparator
+     * @description Сравнивает два числа.
      */
-    function isCollection (object) {
-        return !!object.getIterator;
+    function comparator (a, b) {
+        return a - b;
     }
 
-    provide(Heatmap);
+    provide(TileUrlsGenerator);
 });
 
 /**
@@ -626,184 +854,4 @@ ymaps.modules.define('heatmap.component.Canvas', [
     };
 
     provide(Canvas);
-});
-
-/**
- * Модуль для генерации тайлов тепловой карты.
- * @module heatmap.component.TileUrlsGenerator
- * @requires option.Manager
- * @requires heatmap.component.Canvas
- */
-ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
-    'option.Manager',
-    'heatmap.component.Canvas'
-], function (
-    provide,
-    OptionManager,
-    HeatmapCanvas
-) {
-    /**
-     * Размер тайла карты.
-     */
-    var TILE_SIZE = [256, 256];
-
-    /**
-     * @public
-     * @function TileUrlsGenerator
-     * @description Конструктор генератора url тайлов тепловой карты.
-     *
-     * @param {IProjection} projection Проекция.
-     * @param {Number[][]} points Массив точек в географических координатах.
-     */
-    var TileUrlsGenerator = function (projection, points) {
-        this._projection = projection;
-
-        this._canvas = new HeatmapCanvas(TILE_SIZE);
-        this.options = new OptionManager({});
-        this._canvas.options.setParent(this.options);
-
-        this.setPoints(points || []);
-    };
-
-    /**
-     * @public
-     * @function setPoints
-     * @description Устанавливает точки, которые будут нанесены на карту.
-     *
-     * @param {Number[][]} points Массив точек в географических координатах.
-     * @returns {TileUrlsGenerator}
-     */
-    TileUrlsGenerator.prototype.setPoints = function (points) {
-        this._points = [];
-
-        var weights = [];
-        for (var i = 0, length = points.length; i < length; i++) {
-            this._points.push({
-                coordinates: this._projection.toGlobalPixels(points[i].coordinates, 0),
-                weight: points[i].weight
-            });
-            weights.push(points[i].weight);
-        }
-        this._canvas.options.set('medianaOfWeights', findMediana(weights));
-
-        return this;
-    };
-
-    /**
-     * @public
-     * @function getPoints
-     * @description Отдает точки в географических координатах.
-     *
-     * @returns {Number[][]} points Массив точек в географических координатах.
-     */
-    TileUrlsGenerator.prototype.getPoints = function () {
-        var points = [];
-        for (var i = 0, length = this._points.length; i < length; i++) {
-            points.push({
-                coordinates: this._projection.fromGlobalPixels(this._points[i].coordinates, 0),
-                weight: this._points[i].weight
-            });
-        }
-        return points;
-    };
-
-    /**
-     * @public
-     * @function getTileUrl
-     * @description Возвращает URL тайла по его номеру и уровню масштабирования.
-     *
-     * @param {Number[]} tileNumber Номер тайла [x, y].
-     * @param {Number} zoom Зум тайла.
-     * @returns {String} dataUrl.
-     */
-    TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
-        var radiusFactor = this._canvas.options.get('radiusFactor');
-        if (this.options.get('dissipating')) {
-            if (radiusFactor != zoom) {
-                this._canvas.options.set('radiusFactor', zoom / 10);
-            }
-        } else if (radiusFactor) {
-            this._canvas.options.unset('radiusFactor');
-        }
-
-        var zoomFactor = Math.pow(2, zoom),
-
-            tileBounds = [[
-                tileNumber[0] * TILE_SIZE[0] / zoomFactor,
-                tileNumber[1] * TILE_SIZE[1] / zoomFactor
-            ], [
-                (tileNumber[0] + 1) * TILE_SIZE[0] / zoomFactor,
-                (tileNumber[1] + 1) * TILE_SIZE[1] / zoomFactor
-            ]],
-            tileMargin = this._canvas.getBrushRadius(),
-
-            points = [];
-        for (var i = 0, length = this._points.length, point; i < length; i++) {
-            point = this._points[i].coordinates;
-            if (this._contains(tileBounds, point, tileMargin)) {
-                points.push({
-                    coordinates: [
-                        (point[0] - tileBounds[0][0]) * zoomFactor,
-                        (point[1] - tileBounds[0][1]) * zoomFactor
-                    ],
-                    weight: this._points[i].weight
-                });
-            }
-        }
-
-        return this._canvas.generateDataURLHeatmap(points);
-    };
-
-    /**
-     * @public
-     * @function destroy
-     * @description Уничтожает внутренние данные генератора.
-     */
-    TileUrlsGenerator.prototype.destroy = function () {
-        this._canvas.destroy();
-        this._canvas = null;
-
-        this._projection = null;
-    };
-
-    /**
-     * @private
-     * @function _isPointInBounds
-     * @description Проверка попадаения точки в границы карты.
-     *
-     * @param {Number[][]} bounds Область, в которую попадание проверяется.
-     * @param {Number[]} point Точка в глобальных пиксельных координатах.
-     * @param {Number} margin Необязательный параметр, если нужно расширить bounds.
-     * @returns {Boolean} True - попадает.
-     */
-    TileUrlsGenerator.prototype._contains = function (bounds, point, margin) {
-        return (point[0] >= bounds[0][0] - margin) &&
-            (point[0] <= bounds[1][0] + margin) &&
-            (point[1] >= bounds[0][1] - margin) &&
-            (point[1] <= bounds[1][1] + margin);
-    };
-
-    /**
-     * @function findMediana
-     * @description Ищет медиану в переданной выборке.
-     */
-    function findMediana (selection) {
-        var sortSelection = selection.sort(comparator),
-            center = sortSelection.length / 2;
-        if (center !== Math.floor(center)) {
-            return sortSelection[Math.floor(center)];
-        } else {
-            return (sortSelection[center - 1] + sortSelection[center]) / 2;
-        }
-    }
-
-    /**
-     * @function comparator
-     * @description Сравнивает два числа.
-     */
-    function comparator (a, b) {
-        return a - b;
-    }
-
-    provide(TileUrlsGenerator);
 });
