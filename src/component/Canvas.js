@@ -22,16 +22,16 @@ ymaps.modules.define('heatmap.component.Canvas', [
         // Множитель для радиуса точки.
         radiusFactor: 1,
         // Прозрачность слоя карты.
-        opacity: 0.6,
+        opacity: 0.8,
         // Интенсивность медианной (по весу) точки.
         intensityOfMidpoint: 0.2,
         // Медиана весов точек.
         medianaOfWeights: 1,
         // Градиент, которым будут раскрашены точки.
         gradient: {
-            0.1: 'rgba(128, 255, 0, 1)',
-            0.2: 'rgba(255, 255, 0, 1)',
-            0.7: 'rgba(234, 72, 58, 1)',
+            0.1: 'rgba(128, 255, 0, 0.7)',
+            0.2: 'rgba(255, 255, 0, 0.8)',
+            0.7: 'rgba(234, 72, 58, 0.9)',
             1.0: 'rgba(162, 36, 25, 1)'
         }
     };
@@ -243,7 +243,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
      * @param {Number[]} gradient Градиент [r1, g1, b1, a1, r2, ...].
      */
     Canvas.prototype._colorize = function (pixels) {
-        var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity) * 255;
+        var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity);
         for (var i = 3, length = pixels.length, j; i < length; i += 4) {
             if (pixels[i]) {
                 // Получаем цвет в градиенте, по значению прозрачночти.
@@ -253,7 +253,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
                 pixels[i - 1] = this._gradient[j + 2];
 
                 // Устанавливаем прозрачность слоя.
-                pixels[i] = opacity;
+                pixels[i] = opacity * (this._gradient[j + 3] || 255);
             }
         }
     };

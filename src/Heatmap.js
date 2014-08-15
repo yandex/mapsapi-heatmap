@@ -1,21 +1,18 @@
 /**
  * Модуль для нанесения слоя тепловой карты.
  * @module Heatmap
- * @requires util.math.areEqual
  * @requires option.Manager
  * @requires Monitor
  * @requires Layer
  * @requires heatmap.component.TileUrlsGenerator
  */
 ymaps.modules.define('Heatmap', [
-    'util.math.areEqual',
     'option.Manager',
     'Monitor',
     'Layer',
     'heatmap.component.TileUrlsGenerator'
 ], function (
     provide,
-    areEqual,
     OptionManager,
     Monitor,
     Layer,

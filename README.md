@@ -14,7 +14,7 @@
    <script src="http://my.cdn.tld/Heatmap.min.js" type="text/javascript"></script>
    ```
 
-3. Get access to module functions by using [ymaps.modules.require](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/modules.require.xml) method
+3. Get access to module functions by using [ymaps.modules.require](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/modules.require.xml) method
    ```js
    ymaps.modules.require(['Heatmap'], function (Heatmap) {
         var heatmap = new Heatmap();
@@ -25,19 +25,19 @@
 
 | Parameter | Default value | Decription |
 |---------|-----------------------|----------|
-| data | - | Type: Object.<br>Points description in one of following formats:<ul><li>Number[][] - coordinates array;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml) - object implementing `IGeoObject` interface;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml)[] - array of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml) - collection of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml)[] - array of collection of objects implementing `IGeoObject` interface;</li><li>[GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) - result of [geoQuery](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/geoQuery.xml) execution;</li><li>Any - JSON representation of data according to [GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) input data format.</li> |
+| data | - | Type: Object.<br>Points description in one of following formats:<ul><li>Number[][] - coordinates array;</li><li>[IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml) - object implementing `IGeoObject` interface;</li><li>[IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml)[] - array of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/ICollection.xml) - collection of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/ICollection.xml)[] - array of collection of objects implementing `IGeoObject` interface;</li><li>[GeoQueryResult](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) - result of [geoQuery](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/geoQuery.xml) execution;</li><li>Any - JSON representation of data according to [GeoQueryResult](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) input data format.</li> |
 |  options |  - | Type: Object.<br>Heatmap representation options. |
 |  options.radius |  10 | Type: Number.<br>Point radius of influence (px). |
 |  options.dissipating |  false | Type: Boolean.<br>`true` - disperse points on higher zoom levels according to radius (point radius equals `radius * zoom / 10`), `false` - doesn't disperse. |
-|  options.opacity |  0.6 | Type: Number.<br>Heatmap opacity (from 0 to 1). |
-|  options.intensityOfMidpoint |  0.2 | Type: Number.<br>Intensity of median point (from 0 to 1). |
-|  options.gradient | {<br>&nbsp;&nbsp;&nbsp;&nbsp;0.1:&nbsp;'rgba(128,&nbsp;255,&nbsp;0,&nbsp;1)',<br>&nbsp;&nbsp;&nbsp;&nbsp;0.2:&nbsp;'rgba(255,&nbsp;255,&nbsp;0,&nbsp;1)',<br>&nbsp;&nbsp;&nbsp;&nbsp;0.7:&nbsp;'rgba(234,&nbsp;72,&nbsp;58,&nbsp;1)',<br>&nbsp;&nbsp;&nbsp;&nbsp;1.0:&nbsp;'rgba(162,&nbsp;36,&nbsp;25,&nbsp;1)'<br>} | Type: Object.<br>JSON description of gradient. |
+|  options.opacity |  0.8 | Type: Number.<br>Heatmap opacity (from&nbsp;0&nbsp;to&nbsp;1). |
+|  options.intensityOfMidpoint |  0.2 | Type: Number.<br>Intensity of median point (from&nbsp;0&nbsp;to&nbsp;1). |
+|  options.gradient | {<br>&nbsp;&nbsp;&nbsp;&nbsp;0.1:&nbsp;'rgba(128,&nbsp;255,&nbsp;0,&nbsp;0.7)',<br>&nbsp;&nbsp;&nbsp;&nbsp;0.2:&nbsp;'rgba(255,&nbsp;255,&nbsp;0,&nbsp;0.8)',<br>&nbsp;&nbsp;&nbsp;&nbsp;0.7:&nbsp;'rgba(234,&nbsp;72,&nbsp;58,&nbsp;0.9)',<br>&nbsp;&nbsp;&nbsp;&nbsp;1.0:&nbsp;'rgba(162,&nbsp;36,&nbsp;25,&nbsp;1)'<br>} | Type: Object.<br>JSON description of gradient. |
 
 ## Properties
 
 | Name| Type| Description|
 |----|-----|----------|
-| options | [option.Manager](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/option.Manager.xml) | `Heatmap` instance options manager. |
+| options | [option.Manager](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/option.Manager.xml) | `Heatmap` instance options manager. |
 
 ## Methods
 
@@ -46,7 +46,7 @@
 | [getData](#getdata) | Object&nbsp;&#124;&nbsp;null | Returns reference to data provided to constructor or [setData](#setdata) method. |
 | [setData](#setdata) | Heatmap | Adds new points. If `Heatmap` instance is already rendered, it will be re-rendered. |
 | [getMap](#getmap) |  Map&nbsp;&#124;&nbsp;null | Returns reference to [Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) object. |
-| [setMap](#setmap) |  Heatmap | Sets [Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) instance to render heatmap layer over it. |
+| [setMap](#setmap) |  Heatmap | Sets [Map](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/Map.xml) instance to render heatmap layer over it. |
 | [destroy](#destroy) | - | Destroys `Heatmap` instance. |
 
 
@@ -63,15 +63,15 @@ Self-reference.
 #### Parameters:
 | Parameter | Default value | Description |
 |---------|-----------------------|----------|
-| data | - | Type: Object.<br>Points descirption in one of following formats:<ul><li>Number[][] - coordinates array;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml) - object implementing `IGeoObject` interface;</li><li>[IGeoObject](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml)[] - array of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml) - collection of objects imlementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/ICollection.xml)[] - array of collection of objects implementing `IGeoObject` interface;</li><li>[GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) - result of [geoQuery](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/geoQuery.xml) execution;</li><li>Any - JSON representation of data according to [GeoQueryResult](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) input data format.</li> |
+| data | - | Type: Object.<br>Points descirption in one of following formats:<ul><li>Number[][] - coordinates array;</li><li>[IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml) - object implementing `IGeoObject` interface;</li><li>[IGeoObject](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/IGeoObject.xml)[] - array of objects implementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/ICollection.xml) - collection of objects imlementing `IGeoObject` interface;</li><li>[ICollection](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/ICollection.xml)[] - array of collection of objects implementing `IGeoObject` interface;</li><li>[GeoQueryResult](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) - result of [geoQuery](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/geoQuery.xml) execution;</li><li>Any - JSON representation of data according to [GeoQueryResult](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/GeoQueryResult.xml) input data format.</li> |
 
 
 ### getMap
 #### Returns:
-reference to [Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) object.
+reference to [Map](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/Map.xml) object.
 
 ### setMap
-Sets [Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) instance to render `Heatmap` object over it.
+Sets [Map](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/Map.xml) instance to render `Heatmap` object over it.
 
 #### Returns:
 self-reference.
@@ -79,7 +79,7 @@ self-reference.
 #### Parameters:
 | Parameter | Default value | Description |
 |----------|-----------------------|----------|
-| map | - | Type:Map<br/>[Map](http://api.yandex.com/maps/doc/jsapi/2.1/ref/reference/Map.xml) instance to render `Heatmap` object over it. |
+| map | - | Type:Map<br/>[Map](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/Map.xml) instance to render `Heatmap` object over it. |
 
 
 ### destroy
