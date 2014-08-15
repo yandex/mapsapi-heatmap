@@ -83,18 +83,18 @@
                 },
 
                 gradients = [{
-                    0.1: 'rgba(128, 255, 0, 1)',
-                    0.2: 'rgba(255, 255, 0, 1)',
-                    0.7: 'rgba(234, 72, 58, 1)',
+                    0.1: 'rgba(128, 255, 0, 0.7)',
+                    0.2: 'rgba(255, 255, 0, 0.8)',
+                    0.7: 'rgba(234, 72, 58, 0.9)',
                     1.0: 'rgba(162, 36, 25, 1)'
                 }, {
-                    0.1: 'rgba(162, 36, 25, 1)',
-                    0.2: 'rgba(234, 72, 58, 1)',
-                    0.7: 'rgba(255, 255, 0, 1)',
-                    1: 'rgba(128, 255, 0, 1)'
+                    0.1: 'rgba(162, 36, 25, 0.7)',
+                    0.2: 'rgba(234, 72, 58, 0.8)',
+                    0.7: 'rgba(255, 255, 0, 0.9)',
+                    1.0: 'rgba(128, 255, 0, 1)'
                 }],
                 radiuses = [5, 10, 20, 30],
-                opacities = [0.2, 0.4, 0.6, 1];
+                opacities = [0.4, 0.6, 0.8, 1];
 
             ymaps.modules.require(['Heatmap'], function (Heatmap) {
                 var heatmap = new Heatmap(data, {
@@ -147,7 +147,7 @@
 <body>
     <div class="hero-unit">
         <div class="container">
-            <p>Yandex Maps API <a href="https://github.com/alt-j/ymaps-heatmap">Heatmap Module</a></p>
+            <p>Yandex Maps API <a href="https://github.com/yandex/mapsapi-heatmap">Heatmap Module</a></p>
             <div id="YMapsID"></div>
         </div>
     </div>
