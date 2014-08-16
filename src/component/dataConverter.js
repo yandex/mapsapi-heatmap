@@ -1,5 +1,5 @@
 /**
- * Модуль для преобразования точек из разных форматов в массив взвешенных точек.
+ * Making weighted points array from input data module.
  * @module heatmap.component.dataConverter
  */
 ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
@@ -8,11 +8,11 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @public
      * @function convert
-     * @description Создает массив взвешенных точек из входящих данных.
+     * @description Make weighted points array from input data.
      *
-     * @param {Object} data Точки в одном из форматов:
+     * @param {Object} data Points described useng one of following formats:
      *  IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
-     * @returns {Array} points Массив взвешенных точек.
+     * @returns {Array} points Weighted points array.
      */
     dataConverter.convert = function (data) {
         var points = [];
@@ -61,9 +61,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isJsonFeature
-     * @description Проверяет является ли переданный объект JSON-описанием сущности.
+     * @description Checks whether object is a JSON-description or not.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isJsonFeature = function (object) {
@@ -73,10 +73,10 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _convertJsonFeatureToPoint
-     * @description Конвертирует jsonFeature в взвешенную точку.
+     * @description Converts JSON "Feature" object to weighted point.
      *
-     * @param {JSON} jsonFeature Описание точки в JSON-формате.
-     * @returns {Object} Взвешенная точка.
+     * @param {JSON} jsonFeature JSON "Feature" object.
+     * @returns {Object} Weighted point.
      */
     dataConverter._convertJsonFeatureToPoint = function (jsonFeature) {
         var weight = 1;
@@ -92,9 +92,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isJsonFeatureCollection
-     * @description Проверяет является ли переданный объект JSON-описанием коллекции сущностей.
+     * @description Checks whether JSON object is a correct Feature collection description.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isJsonFeatureCollection = function (object) {
@@ -104,9 +104,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isCoordinates
-     * @description Проверяет является ли переданный объект координатами точки ([x1, y1]).
+     * @description Checks whether object is a pair of coordinates.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isCoordinates = function (object) {
@@ -118,10 +118,10 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _convertCoordinatesToPoint
-     * @description Конвертирует geoObject в взвешенную точку.
+     * @description Converts coordinates into weighted point.
      *
-     * @param {Number[]} coordinates Координаты точки.
-     * @returns {Object} Взвешенная точка.
+     * @param {Number[]} coordinates Coordinates.
+     * @returns {Object} Weighted point.
      */
     dataConverter._convertCoordinatesToPoint = function (coordinates) {
         return {
@@ -133,9 +133,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isJsonGeometry
-     * @description Проверяет является ли переданный объект JSON-описанием геометрии.
+     * @description Checks whether JSON object is a correct geometry description.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isJsonGeometry = function (object) {
@@ -145,9 +145,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isGeoObject
-     * @description Проверяет является ли переданный объект инстанцией геообъекта.
+     * @description Checks whether object implements IGeoObjectInterface.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isGeoObject = function (object) {
@@ -157,10 +157,10 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _convertGeoObjectToPoint
-     * @description Конвертирует geoObject типа Point в взвешенную точку.
+     * @description Converts IGeoObject of Point type into weighted point.
      *
-     * @param {IGeoObject} geoObject Геообъект с геометрией Point.
-     * @returns {Object} Взвешенная точка.
+     * @param {IGeoObject} geoObject IGeoObject of Point type.
+     * @returns {Object} Weighted point.
      */
     dataConverter._convertGeoObjectToPoint = function (geoObject) {
         return {
@@ -172,9 +172,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isCollection
-     * @description Проверяет является ли переданный объект инстанцией коллекции.
+     * @description Checks whether object implements ICollection interface.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isCollection = function (object) {

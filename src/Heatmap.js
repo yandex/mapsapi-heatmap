@@ -1,5 +1,5 @@
 /**
- * Модуль для нанесения слоя тепловой карты.
+ * Heatmap module.
  * @module Heatmap
  * @requires option.Manager
  * @requires Monitor
@@ -24,18 +24,18 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function Heatmap
-     * @description Конструктор тепловой карты.
+     * @description Heatmap constructor.
      *
-     * @param {Object} data Точки в одном из форматов:
-     *  IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
-     * @param {Object} options Объект с опциями отображения тепловой карты:
-     *  radius - радиус влияния (в пикселях) для каждой точки данных;
-     *  dissipating - указывает, следует ли рассредоточивать данные тепловой карты при
-     *  уменьшении масштаба, если указано true, то радиус точки для n'го масштаба будет
-     *  равен (radius * zoom / 10). По умолчанию опция отключена.
-     *  opacity - прозрачность карты;
-     *  intensityOfMidpoint - интенсивность медианной (по весу) точки;
-     *  gradient - объект, задающий градиент.
+     * @param {Object} data Points described using one of following formats:
+     * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
+     * @param {Object} options Object describing rendering options:
+     *  radius - radius of point influence (px);
+     *  dissipating - true - disperse points on higher zoom levels according to radius
+     *   (point radius equals radius * zoom / 10), false - doesn't disperse.
+     *   Default value is false;
+     *  opacity - Heatmap opacity (from 0 to 1);
+     *  intensityOfMidpoint - Intensity of median point (from 0 to 1);
+     *  gradient - JSON description of gradient.
      */
     var Heatmap = function (data, options) {
         this._unprocessedPoints = [];
@@ -49,8 +49,8 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function getData
-     * @description Отдает ссылку на объект данных, который был передан
-     *  в конструктор или в метод setData.
+     * @description Returns reference to data provided to constructor or {@link Heatmap.setData} method.
+     *
      * @returns {Object|null}
      */
     Heatmap.prototype.getData = function () {
@@ -60,13 +60,11 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function setData
-     * @description Устанавливает данные (точки), которые будут нанесены
-     *  на карту. Если слой уже отрисован, то любые последующие манипуляции с
-     *  данными приводят к его перерисовке.
+     * @description Sets points. If `Heatmap` instance is already rendered, it will be re-rendered.
      *
-     * @param {Object} data Точки в одном из форматов:
+     * @param {Object} data Points described using one of following formats:
      * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
-     * @returns {Heatmap}
+     * @returns {Heatmap} Self-reference.
      */
     Heatmap.prototype.setData = function (data) {
         this._data = data;
@@ -83,10 +81,9 @@ ymaps.modules.define('Heatmap', [
 
     /**
      * @public
-     * @function setMap
-     * @description Получение текущей карты, на которой отображена тепловая карта.
+     * @function getMap
      *
-     * @returns {Map} map Инстанция ymaps.Map.
+     * @returns {Map} reference to Map instance.
      */
     Heatmap.prototype.getMap = function () {
         return this._map;
@@ -95,10 +92,10 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function setMap
-     * @description Устанавливает карту, на которой должна отобразиться тепловая карта.
+     * @description Sets Map instance to render `Heatmap` object over it.
      *
-     * @param {Map} map Инстанция ymaps.Map, на которую будет добавлен слой тепловой карты.
-     * @returns {Heatmap}
+     * @param {Map} map Map instance.
+     * @returns {Heatmap} Self-reference.
      */
     Heatmap.prototype.setMap = function (map) {
         if (this._map != map) {
@@ -118,7 +115,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function destroy
-     * @description Уничтожает внутренние данные слоя тепловой карты.
+     * @description Destructs Heatmap instance.
      */
     Heatmap.prototype.destroy = function () {
         this._data = null;
@@ -128,9 +125,9 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _refresh
-     * @description Перегенерирует слой тепловой карты.
+     * @description Re-renders Heatmap.
      *
-     * @returns {Heatmap}
+     * @returns {Heatmap} Self-reference.
      */
     Heatmap.prototype._refresh = function () {
         if (this._layer) {
@@ -142,9 +139,9 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _setupLayer
-     * @description Установка слоя, в котором будет размещена тепловая карта.
+     * @description Sets up asotiated map layer.
      *
-     * @returns {Layer} Слой тепловой карты.
+     * @returns {Layer} Layer instance.
      */
     Heatmap.prototype._setupLayer = function () {
         this._setupTileUrlsGenerator();
@@ -159,7 +156,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _destroyLayer
-     * @description Уничтожает this._layer.
+     * @description Destroys assotiated layer instance.
      */
     Heatmap.prototype._destroyLayer = function () {
         this._destroyTileUrlsGenerator();
@@ -170,9 +167,9 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _setupTileUrlsGenerator
-     * @description Устанавливает генератор для тайлов тепловой карты.
+     * @description Sets up tile URL generator.
      *
-     * @returns {TileUrlsGenerator} Генератор тайлов.
+     * @returns {TileUrlsGenerator} Tile URL generator.
      */
     Heatmap.prototype._setupTileUrlsGenerator = function () {
         this._tileUrlsGenerator = new TileUrlsGenerator(
@@ -189,7 +186,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _destroyTileUrlsGenerator
-     * @description Уничтожает this._tileUrlsGenerator.
+     * @description Destroys tile URL generator.
      */
     Heatmap.prototype._destroyTileUrlsGenerator = function () {
         this._unprocessedPoints = this._tileUrlsGenerator.getPoints();
@@ -200,9 +197,9 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _setupOptionMonitor
-     * @description Устанавливает монитор на опции тепловой карты.
+     * @description Sets up options monitor.
      *
-     * @returns {Monitor} Монитор опций.
+     * @returns {Monitor} Options monitor.
      */
     Heatmap.prototype._setupOptionMonitor = function () {
         this._optionMonitor = new Monitor(this.options);
@@ -217,7 +214,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _destroyOptionMonitor
-     * @description Уничтожает this._optionMonitor.
+     * @description Destroys options monitor.
      */
     Heatmap.prototype._destroyOptionMonitor = function () {
         this._optionMonitor.removeAll();
