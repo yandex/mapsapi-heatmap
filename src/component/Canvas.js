@@ -1,5 +1,5 @@
 /**
- * Модуль отрисовки тепловой карты на canvas'e. Позволяет получить карту в формате dataURL.
+ * Heatmap rendering onto canvas module. Allows to get Headmap as Data URL.
  * @module heatmap.component.Canvas
  * @requires option.Manager
  * @requires Monitor
@@ -14,20 +14,20 @@ ymaps.modules.define('heatmap.component.Canvas', [
 ) {
     /**
      * @constant DEFAULT_OPTIONS
-     * @description Настройки карты по умолчанию.
+     * @description Default Heatmap options.
      */
     var DEFAULT_OPTIONS = {
-        // Радиус точки.
+        // Point radius
         radius: 10,
-        // Множитель для радиуса точки.
+        // Radius factor
         radiusFactor: 1,
-        // Прозрачность слоя карты.
+        // Map layer opacity
         opacity: 0.8,
-        // Интенсивность медианной (по весу) точки.
+        // Median point intencity
         intensityOfMidpoint: 0.2,
-        // Медиана весов точек.
+        // Median of points weights
         medianaOfWeights: 1,
-        // Градиент, которым будут раскрашены точки.
+        // Gradient
         gradient: {
             0.1: 'rgba(128, 255, 0, 0.7)',
             0.2: 'rgba(255, 255, 0, 0.8)',
@@ -39,9 +39,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @public
      * @function Canvas
-     * @description Конструктор модуля отрисовки тепловой карты.
+     * @description Heatmap rendering module constructor.
      *
-     * @param {Number[]} size Размер карты: [width, height].
+     * @param {Number[]} size Heatmap size, [width, height].
      */
     var Canvas = function (size) {
         this._canvas = document.createElement('canvas');
@@ -59,7 +59,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @public
      * @function getBrushRadius
-     * @description Получение размера кисти, которая используется для отрисовки точек.
+     * @description Returns brush size to use for points drawing.
      *
      * @returns {Number} margin.
      */
@@ -71,10 +71,10 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @public
      * @function generateDataURLHeatmap
-     * @description Получение карты в виде dataURL с нанесенными точками.
+     * @description Returns Generates Heatmap and returns as Data URL
      *
-     * @param {Number[][]} points Массив точек [[x1, y1], [x2, y2], ...].
-     * @returns {String} dataURL.
+     * @param {Number[][]} points Array of points [[x1, y1], [x2, y2], ...].
+     * @returns {String} Data URL.
      */
     Canvas.prototype.generateDataURLHeatmap = function (points) {
         this._drawHeatmap(points || []);
@@ -85,7 +85,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @public
      * @function destroy
-     * @description Уничтожает внутренние данные.
+     * @description Destroys module.
      */
     Canvas.prototype.destroy = function () {
         this._destroyOptionMonitor();
@@ -95,9 +95,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _setupOptionMonitor
-     * @description Устанавливает монитор на опции тепловой карты.
+     * @description Sets up Heatmap options monitor.
      *
-     * @returns {Monitor} Монитор опций.
+     * @returns {Monitor} Options monitor.
      */
     Canvas.prototype._setupOptionMonitor = function () {
         this._optionMonitor = new Monitor(this.options);
@@ -112,7 +112,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _destroyOptionMonitor
-     * @description Уничтожает монитор опций.
+     * @description Destroys options monitor.
      */
     Canvas.prototype._destroyOptionMonitor = function () {
         this._optionMonitor.removeAll();
@@ -122,9 +122,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _setupDrawTools
-     * @description Устанавливает внутренние опции тепловой карты.
+     * @description Sets up internal components.
      *
-     * @returns {Canvas}
+     * @returns {Canvas} Canvas instanse.
      */
     Canvas.prototype._setupDrawTools = function () {
         this._brush = this._createBrush();
@@ -136,7 +136,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _destroyDrawTools
-     * @description Уничтожает внутренние опции тепловой карты.
+     * @description Destroys internal components.
      */
     Canvas.prototype._destroyDrawTools = function () {
         this._brush = null;
@@ -146,9 +146,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _createBrush
-     * @description Создание кисти, которой будут нарисованы точки.
+     * @description Creates brush to draw points.
      *
-     * @returns {HTMLElement} brush Канвас с отрисованной тенью круга.
+     * @returns {HTMLElement} brush Canvas with brush pattern.
      */
     Canvas.prototype._createBrush = function () {
         var brush = document.createElement('canvas'),
@@ -169,9 +169,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _createGradient
-     * @description Создание 256x1 градиента, которым будет раскрашена карта.
+     * @description Creates 256x1 px gradient to draw Heatmap.
      *
-     * @returns {Number[]} [r1, g1, b1, a1, r2, ...].
+     * @returns {Number[]} Image data.
      */
     Canvas.prototype._createGradient = function () {
         var canvas = document.createElement('canvas'),
@@ -197,9 +197,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _drawHeatmap
-     * @description Отрисовка тепловой карты.
+     * @description Draws Heatmap.
      *
-     * @returns {Canvas}
+     * @returns {Canvas} Canvas.
      */
     Canvas.prototype._drawHeatmap = function (points) {
         var context = this._context,
@@ -213,7 +213,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
                 'medianaOfWeights',
                 DEFAULT_OPTIONS.medianaOfWeights
             ),
-            // Множитель для установки медианы интенсивности точек.
+            // Factor to set median intensity.
             weightFactor = intensityOfMidpoint / medianaOfWeights;
 
         context.clearRect(0, 0, this._canvas.width, this._canvas.height);
@@ -237,22 +237,22 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _colorize
-     * @description Раскрашивание пикселей карты.
+     * @description Paints Heatmap pixels.
      *
-     * @param {Number[]} pixels Бесцветная тепловая карта [r1, g1, b1, a1, r2, ...].
-     * @param {Number[]} gradient Градиент [r1, g1, b1, a1, r2, ...].
+     * @param {Number[]} pixels Colorless Heatmap as pixel data.
+     * @param {Number[]} gradient Gradient as pixel data.
      */
     Canvas.prototype._colorize = function (pixels) {
         var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity);
         for (var i = 3, length = pixels.length, j; i < length; i += 4) {
             if (pixels[i]) {
-                // Получаем цвет в градиенте, по значению прозрачночти.
+                // Obtain a color in gradient by transparency
                 j = 4 * pixels[i];
                 pixels[i - 3] = this._gradient[j];
                 pixels[i - 2] = this._gradient[j + 1];
                 pixels[i - 1] = this._gradient[j + 2];
 
-                // Устанавливаем прозрачность слоя.
+                // Sets layer opacity
                 pixels[i] = opacity * (this._gradient[j + 3] || 255);
             }
         }
