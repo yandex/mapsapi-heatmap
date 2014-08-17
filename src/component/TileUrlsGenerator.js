@@ -1,5 +1,5 @@
 /**
- * Модуль для генерации тайлов тепловой карты.
+ * Heatmap tiles generator module.
  * @module heatmap.component.TileUrlsGenerator
  * @requires option.Manager
  * @requires heatmap.component.Canvas
@@ -13,17 +13,17 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     HeatmapCanvas
 ) {
     /**
-     * Размер тайла карты.
+     * Heatmap tile size.
      */
     var TILE_SIZE = [256, 256];
 
     /**
      * @public
      * @function TileUrlsGenerator
-     * @description Конструктор генератора url тайлов тепловой карты.
+     * @description Heatmap tiles generator constructor.
      *
-     * @param {IProjection} projection Проекция.
-     * @param {Number[][]} points Массив точек в географических координатах.
+     * @param {IProjection} projection Projection.
+     * @param {Number[][]} points Points provided as geographical coordinates.
      */
     var TileUrlsGenerator = function (projection, points) {
         this._projection = projection;
@@ -38,10 +38,10 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @public
      * @function setPoints
-     * @description Устанавливает точки, которые будут нанесены на карту.
+     * @description Sets array points to render.
      *
-     * @param {Number[][]} points Массив точек в географических координатах.
-     * @returns {TileUrlsGenerator}
+     * @param {Number[][]} points Array of points provided as geographical coordinates.
+     * @returns {TileUrlsGenerator} Tile URLs generator.
      */
     TileUrlsGenerator.prototype.setPoints = function (points) {
         this._points = [];
@@ -62,9 +62,9 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @public
      * @function getPoints
-     * @description Отдает точки в географических координатах.
+     * @description Returns points.
      *
-     * @returns {Number[][]} points Массив точек в географических координатах.
+     * @returns {Number[][]} points Points provided as geographical coordinates.
      */
     TileUrlsGenerator.prototype.getPoints = function () {
         var points = [];
@@ -80,11 +80,11 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @public
      * @function getTileUrl
-     * @description Возвращает URL тайла по его номеру и уровню масштабирования.
+     * @description Returns tile URL according to given number and zoom level.
      *
-     * @param {Number[]} tileNumber Номер тайла [x, y].
-     * @param {Number} zoom Зум тайла.
-     * @returns {String} dataUrl.
+     * @param {Number[]} tileNumber Tile number [x, y].
+     * @param {Number} zoom Zoom level.
+     * @returns {String} Data URL.
      */
     TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
         var radiusFactor = this._canvas.options.get('radiusFactor');
@@ -127,7 +127,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @public
      * @function destroy
-     * @description Уничтожает внутренние данные генератора.
+     * @description Destroys generator.
      */
     TileUrlsGenerator.prototype.destroy = function () {
         this._canvas.destroy();
@@ -139,12 +139,12 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @private
      * @function _isPointInBounds
-     * @description Проверка попадаения точки в границы карты.
+     * @description Checks whether point is located inside given area.
      *
-     * @param {Number[][]} bounds Область, в которую попадание проверяется.
-     * @param {Number[]} point Точка в глобальных пиксельных координатах.
-     * @param {Number} margin Необязательный параметр, если нужно расширить bounds.
-     * @returns {Boolean} True - попадает.
+     * @param {Number[][]} bounds Area.
+     * @param {Number[]} point Point.
+     * @param {Number} margin Area extension.
+     * @returns {Boolean} True - point lies inside area, false - otherwise.
      */
     TileUrlsGenerator.prototype._contains = function (bounds, point, margin) {
         return (point[0] >= bounds[0][0] - margin) &&
@@ -155,7 +155,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
 
     /**
      * @function findMediana
-     * @description Ищет медиану в переданной выборке.
+     * @description Calculates a median of provided array of data.
      */
     function findMediana (selection) {
         var sortSelection = selection.sort(comparator),
@@ -169,7 +169,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
 
     /**
      * @function comparator
-     * @description Сравнивает два числа.
+     * @description Compares two numbers.
      */
     function comparator (a, b) {
         return a - b;
