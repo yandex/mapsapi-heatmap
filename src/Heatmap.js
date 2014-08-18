@@ -31,7 +31,7 @@ ymaps.modules.define('Heatmap', [
      * @param {Object} options Object describing rendering options:
      *  radius - radius of point influence (px);
      *  dissipating - true - disperse points on higher zoom levels according to radius
-     *   (point radius equals radius * zoom / 10), false - doesn't disperse.
+     *   (point radius equals radius * zoom / 10), false - don't disperse.
      *   Default value is false;
      *  opacity - Heatmap opacity (from 0 to 1);
      *  intensityOfMidpoint - Intensity of median point (from 0 to 1);

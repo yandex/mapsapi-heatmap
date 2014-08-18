@@ -1,5 +1,5 @@
 /**
- * Модуль для нанесения слоя тепловой карты.
+ * Heatmap module.
  * @module Heatmap
  * @requires option.Manager
  * @requires Monitor
@@ -24,18 +24,18 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function Heatmap
-     * @description Конструктор тепловой карты.
+     * @description Heatmap constructor.
      *
-     * @param {Object} data Точки в одном из форматов:
-     *  IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
-     * @param {Object} options Объект с опциями отображения тепловой карты:
-     *  radius - радиус влияния (в пикселях) для каждой точки данных;
-     *  dissipating - указывает, следует ли рассредоточивать данные тепловой карты при
-     *  уменьшении масштаба, если указано true, то радиус точки для n'го масштаба будет
-     *  равен (radius * zoom / 10). По умолчанию опция отключена.
-     *  opacity - прозрачность карты;
-     *  intensityOfMidpoint - интенсивность медианной (по весу) точки;
-     *  gradient - объект, задающий градиент.
+     * @param {Object} data Points described using one of following formats:
+     * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
+     * @param {Object} options Object describing rendering options:
+     *  radius - radius of point influence (px);
+     *  dissipating - true - disperse points on higher zoom levels according to radius
+     *   (point radius equals radius * zoom / 10), false - don't disperse.
+     *   Default value is false;
+     *  opacity - Heatmap opacity (from 0 to 1);
+     *  intensityOfMidpoint - Intensity of median point (from 0 to 1);
+     *  gradient - JSON description of gradient.
      */
     var Heatmap = function (data, options) {
         this._unprocessedPoints = [];
@@ -49,8 +49,8 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function getData
-     * @description Отдает ссылку на объект данных, который был передан
-     *  в конструктор или в метод setData.
+     * @description Returns reference to data provided to constructor or {@link Heatmap.setData} method.
+     *
      * @returns {Object|null}
      */
     Heatmap.prototype.getData = function () {
@@ -60,13 +60,11 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function setData
-     * @description Устанавливает данные (точки), которые будут нанесены
-     *  на карту. Если слой уже отрисован, то любые последующие манипуляции с
-     *  данными приводят к его перерисовке.
+     * @description Sets points. If `Heatmap` instance is already rendered, it will be re-rendered.
      *
-     * @param {Object} data Точки в одном из форматов:
+     * @param {Object} data Points described using one of following formats:
      * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
-     * @returns {Heatmap}
+     * @returns {Heatmap} Self-reference.
      */
     Heatmap.prototype.setData = function (data) {
         this._data = data;
@@ -83,10 +81,9 @@ ymaps.modules.define('Heatmap', [
 
     /**
      * @public
-     * @function setMap
-     * @description Получение текущей карты, на которой отображена тепловая карта.
+     * @function getMap
      *
-     * @returns {Map} map Инстанция ymaps.Map.
+     * @returns {Map} reference to Map instance.
      */
     Heatmap.prototype.getMap = function () {
         return this._map;
@@ -95,10 +92,10 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function setMap
-     * @description Устанавливает карту, на которой должна отобразиться тепловая карта.
+     * @description Sets Map instance to render `Heatmap` object over it.
      *
-     * @param {Map} map Инстанция ymaps.Map, на которую будет добавлен слой тепловой карты.
-     * @returns {Heatmap}
+     * @param {Map} map Map instance.
+     * @returns {Heatmap} Self-reference.
      */
     Heatmap.prototype.setMap = function (map) {
         if (this._map != map) {
@@ -118,7 +115,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @public
      * @function destroy
-     * @description Уничтожает внутренние данные слоя тепловой карты.
+     * @description Destructs Heatmap instance.
      */
     Heatmap.prototype.destroy = function () {
         this._data = null;
@@ -128,9 +125,9 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _refresh
-     * @description Перегенерирует слой тепловой карты.
+     * @description Re-renders Heatmap.
      *
-     * @returns {Heatmap}
+     * @returns {Heatmap} Self-reference.
      */
     Heatmap.prototype._refresh = function () {
         if (this._layer) {
@@ -142,9 +139,9 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _setupLayer
-     * @description Установка слоя, в котором будет размещена тепловая карта.
+     * @description Sets up asotiated map layer.
      *
-     * @returns {Layer} Слой тепловой карты.
+     * @returns {Layer} Layer instance.
      */
     Heatmap.prototype._setupLayer = function () {
         this._setupTileUrlsGenerator();
@@ -159,7 +156,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _destroyLayer
-     * @description Уничтожает this._layer.
+     * @description Destroys assotiated layer instance.
      */
     Heatmap.prototype._destroyLayer = function () {
         this._destroyTileUrlsGenerator();
@@ -170,9 +167,9 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _setupTileUrlsGenerator
-     * @description Устанавливает генератор для тайлов тепловой карты.
+     * @description Sets up tile URL generator.
      *
-     * @returns {TileUrlsGenerator} Генератор тайлов.
+     * @returns {TileUrlsGenerator} Tile URL generator.
      */
     Heatmap.prototype._setupTileUrlsGenerator = function () {
         this._tileUrlsGenerator = new TileUrlsGenerator(
@@ -189,7 +186,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _destroyTileUrlsGenerator
-     * @description Уничтожает this._tileUrlsGenerator.
+     * @description Destroys tile URL generator.
      */
     Heatmap.prototype._destroyTileUrlsGenerator = function () {
         this._unprocessedPoints = this._tileUrlsGenerator.getPoints();
@@ -200,9 +197,9 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _setupOptionMonitor
-     * @description Устанавливает монитор на опции тепловой карты.
+     * @description Sets up options monitor.
      *
-     * @returns {Monitor} Монитор опций.
+     * @returns {Monitor} Options monitor.
      */
     Heatmap.prototype._setupOptionMonitor = function () {
         this._optionMonitor = new Monitor(this.options);
@@ -217,7 +214,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _destroyOptionMonitor
-     * @description Уничтожает this._optionMonitor.
+     * @description Destroys options monitor.
      */
     Heatmap.prototype._destroyOptionMonitor = function () {
         this._optionMonitor.removeAll();
@@ -228,7 +225,7 @@ ymaps.modules.define('Heatmap', [
 });
 
 /**
- * Модуль для преобразования точек из разных форматов в массив взвешенных точек.
+ * Making weighted points array from input data module.
  * @module heatmap.component.dataConverter
  */
 ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
@@ -237,11 +234,11 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @public
      * @function convert
-     * @description Создает массив взвешенных точек из входящих данных.
+     * @description Make weighted points array from input data.
      *
-     * @param {Object} data Точки в одном из форматов:
+     * @param {Object} data Points described useng one of following formats:
      *  IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
-     * @returns {Array} points Массив взвешенных точек.
+     * @returns {Array} points Weighted points array.
      */
     dataConverter.convert = function (data) {
         var points = [];
@@ -290,9 +287,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isJsonFeature
-     * @description Проверяет является ли переданный объект JSON-описанием сущности.
+     * @description Checks whether object is a JSON-description or not.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isJsonFeature = function (object) {
@@ -302,10 +299,10 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _convertJsonFeatureToPoint
-     * @description Конвертирует jsonFeature в взвешенную точку.
+     * @description Converts JSON "Feature" object to weighted point.
      *
-     * @param {JSON} jsonFeature Описание точки в JSON-формате.
-     * @returns {Object} Взвешенная точка.
+     * @param {JSON} jsonFeature JSON "Feature" object.
+     * @returns {Object} Weighted point.
      */
     dataConverter._convertJsonFeatureToPoint = function (jsonFeature) {
         var weight = 1;
@@ -321,9 +318,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isJsonFeatureCollection
-     * @description Проверяет является ли переданный объект JSON-описанием коллекции сущностей.
+     * @description Checks whether JSON object is a correct Feature collection description.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isJsonFeatureCollection = function (object) {
@@ -333,9 +330,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isCoordinates
-     * @description Проверяет является ли переданный объект координатами точки ([x1, y1]).
+     * @description Checks whether object is a pair of coordinates.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isCoordinates = function (object) {
@@ -347,10 +344,10 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _convertCoordinatesToPoint
-     * @description Конвертирует geoObject в взвешенную точку.
+     * @description Converts coordinates into weighted point.
      *
-     * @param {Number[]} coordinates Координаты точки.
-     * @returns {Object} Взвешенная точка.
+     * @param {Number[]} coordinates Coordinates.
+     * @returns {Object} Weighted point.
      */
     dataConverter._convertCoordinatesToPoint = function (coordinates) {
         return {
@@ -362,9 +359,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isJsonGeometry
-     * @description Проверяет является ли переданный объект JSON-описанием геометрии.
+     * @description Checks whether JSON object is a correct geometry description.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isJsonGeometry = function (object) {
@@ -374,9 +371,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isGeoObject
-     * @description Проверяет является ли переданный объект инстанцией геообъекта.
+     * @description Checks whether object implements IGeoObjectInterface.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isGeoObject = function (object) {
@@ -386,10 +383,10 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _convertGeoObjectToPoint
-     * @description Конвертирует geoObject типа Point в взвешенную точку.
+     * @description Converts IGeoObject of Point type into weighted point.
      *
-     * @param {IGeoObject} geoObject Геообъект с геометрией Point.
-     * @returns {Object} Взвешенная точка.
+     * @param {IGeoObject} geoObject IGeoObject of Point type.
+     * @returns {Object} Weighted point.
      */
     dataConverter._convertGeoObjectToPoint = function (geoObject) {
         return {
@@ -401,9 +398,9 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
     /**
      * @private
      * @function _isCollection
-     * @description Проверяет является ли переданный объект инстанцией коллекции.
+     * @description Checks whether object implements ICollection interface.
      *
-     * @param {Object} object Произвольный объект.
+     * @param {Object} object Some object.
      * @returns {Boolean}
      */
     dataConverter._isCollection = function (object) {
@@ -414,7 +411,7 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
 });
 
 /**
- * Модуль для генерации тайлов тепловой карты.
+ * Heatmap tiles generator module.
  * @module heatmap.component.TileUrlsGenerator
  * @requires option.Manager
  * @requires heatmap.component.Canvas
@@ -428,17 +425,17 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     HeatmapCanvas
 ) {
     /**
-     * Размер тайла карты.
+     * Heatmap tile size.
      */
     var TILE_SIZE = [256, 256];
 
     /**
      * @public
      * @function TileUrlsGenerator
-     * @description Конструктор генератора url тайлов тепловой карты.
+     * @description Heatmap tiles generator constructor.
      *
-     * @param {IProjection} projection Проекция.
-     * @param {Number[][]} points Массив точек в географических координатах.
+     * @param {IProjection} projection Projection.
+     * @param {Number[][]} points Points provided as geographical coordinates.
      */
     var TileUrlsGenerator = function (projection, points) {
         this._projection = projection;
@@ -453,10 +450,10 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @public
      * @function setPoints
-     * @description Устанавливает точки, которые будут нанесены на карту.
+     * @description Sets array points to render.
      *
-     * @param {Number[][]} points Массив точек в географических координатах.
-     * @returns {TileUrlsGenerator}
+     * @param {Number[][]} points Array of points provided as geographical coordinates.
+     * @returns {TileUrlsGenerator} Tile URLs generator.
      */
     TileUrlsGenerator.prototype.setPoints = function (points) {
         this._points = [];
@@ -477,9 +474,9 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @public
      * @function getPoints
-     * @description Отдает точки в географических координатах.
+     * @description Returns points.
      *
-     * @returns {Number[][]} points Массив точек в географических координатах.
+     * @returns {Number[][]} points Points provided as geographical coordinates.
      */
     TileUrlsGenerator.prototype.getPoints = function () {
         var points = [];
@@ -495,11 +492,11 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @public
      * @function getTileUrl
-     * @description Возвращает URL тайла по его номеру и уровню масштабирования.
+     * @description Returns tile URL according to given number and zoom level.
      *
-     * @param {Number[]} tileNumber Номер тайла [x, y].
-     * @param {Number} zoom Зум тайла.
-     * @returns {String} dataUrl.
+     * @param {Number[]} tileNumber Tile number [x, y].
+     * @param {Number} zoom Zoom level.
+     * @returns {String} Data URL.
      */
     TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
         var radiusFactor = this._canvas.options.get('radiusFactor');
@@ -542,7 +539,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @public
      * @function destroy
-     * @description Уничтожает внутренние данные генератора.
+     * @description Destroys generator.
      */
     TileUrlsGenerator.prototype.destroy = function () {
         this._canvas.destroy();
@@ -554,12 +551,12 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     /**
      * @private
      * @function _isPointInBounds
-     * @description Проверка попадаения точки в границы карты.
+     * @description Checks whether point is located inside given area.
      *
-     * @param {Number[][]} bounds Область, в которую попадание проверяется.
-     * @param {Number[]} point Точка в глобальных пиксельных координатах.
-     * @param {Number} margin Необязательный параметр, если нужно расширить bounds.
-     * @returns {Boolean} True - попадает.
+     * @param {Number[][]} bounds Area.
+     * @param {Number[]} point Point.
+     * @param {Number} margin Area extension.
+     * @returns {Boolean} True - point lies inside area, false - otherwise.
      */
     TileUrlsGenerator.prototype._contains = function (bounds, point, margin) {
         return (point[0] >= bounds[0][0] - margin) &&
@@ -570,7 +567,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
 
     /**
      * @function findMediana
-     * @description Ищет медиану в переданной выборке.
+     * @description Calculates a median of provided array of data.
      */
     function findMediana (selection) {
         var sortSelection = selection.sort(comparator),
@@ -584,7 +581,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
 
     /**
      * @function comparator
-     * @description Сравнивает два числа.
+     * @description Compares two numbers.
      */
     function comparator (a, b) {
         return a - b;
@@ -594,7 +591,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
 });
 
 /**
- * Модуль отрисовки тепловой карты на canvas'e. Позволяет получить карту в формате dataURL.
+ * Heatmap rendering onto canvas module. Allows to get Headmap as Data URL.
  * @module heatmap.component.Canvas
  * @requires option.Manager
  * @requires Monitor
@@ -609,20 +606,20 @@ ymaps.modules.define('heatmap.component.Canvas', [
 ) {
     /**
      * @constant DEFAULT_OPTIONS
-     * @description Настройки карты по умолчанию.
+     * @description Default Heatmap options.
      */
     var DEFAULT_OPTIONS = {
-        // Радиус точки.
+        // Point radius.
         radius: 10,
-        // Множитель для радиуса точки.
+        // Radius factor.
         radiusFactor: 1,
-        // Прозрачность слоя карты.
+        // Map layer opacity.
         opacity: 0.8,
-        // Интенсивность медианной (по весу) точки.
+        // Median point intencity.
         intensityOfMidpoint: 0.2,
-        // Медиана весов точек.
+        // Median of points weights.
         medianaOfWeights: 1,
-        // Градиент, которым будут раскрашены точки.
+        // Gradient.
         gradient: {
             0.1: 'rgba(128, 255, 0, 0.7)',
             0.2: 'rgba(255, 255, 0, 0.8)',
@@ -634,9 +631,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @public
      * @function Canvas
-     * @description Конструктор модуля отрисовки тепловой карты.
+     * @description Heatmap rendering module constructor.
      *
-     * @param {Number[]} size Размер карты: [width, height].
+     * @param {Number[]} size Heatmap size, [width, height].
      */
     var Canvas = function (size) {
         this._canvas = document.createElement('canvas');
@@ -654,7 +651,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @public
      * @function getBrushRadius
-     * @description Получение размера кисти, которая используется для отрисовки точек.
+     * @description Returns brush size to use for points drawing.
      *
      * @returns {Number} margin.
      */
@@ -666,10 +663,10 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @public
      * @function generateDataURLHeatmap
-     * @description Получение карты в виде dataURL с нанесенными точками.
+     * @description Returns Generates Heatmap and returns as Data URL
      *
-     * @param {Number[][]} points Массив точек [[x1, y1], [x2, y2], ...].
-     * @returns {String} dataURL.
+     * @param {Number[][]} points Array of points [[x1, y1], [x2, y2], ...].
+     * @returns {String} Data URL.
      */
     Canvas.prototype.generateDataURLHeatmap = function (points) {
         this._drawHeatmap(points || []);
@@ -680,7 +677,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @public
      * @function destroy
-     * @description Уничтожает внутренние данные.
+     * @description Destroys module.
      */
     Canvas.prototype.destroy = function () {
         this._destroyOptionMonitor();
@@ -690,9 +687,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _setupOptionMonitor
-     * @description Устанавливает монитор на опции тепловой карты.
+     * @description Sets up Heatmap options monitor.
      *
-     * @returns {Monitor} Монитор опций.
+     * @returns {Monitor} Options monitor.
      */
     Canvas.prototype._setupOptionMonitor = function () {
         this._optionMonitor = new Monitor(this.options);
@@ -707,7 +704,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _destroyOptionMonitor
-     * @description Уничтожает монитор опций.
+     * @description Destroys options monitor.
      */
     Canvas.prototype._destroyOptionMonitor = function () {
         this._optionMonitor.removeAll();
@@ -717,9 +714,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _setupDrawTools
-     * @description Устанавливает внутренние опции тепловой карты.
+     * @description Sets up internal components.
      *
-     * @returns {Canvas}
+     * @returns {Canvas} Canvas instanse.
      */
     Canvas.prototype._setupDrawTools = function () {
         this._brush = this._createBrush();
@@ -731,7 +728,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _destroyDrawTools
-     * @description Уничтожает внутренние опции тепловой карты.
+     * @description Destroys internal components.
      */
     Canvas.prototype._destroyDrawTools = function () {
         this._brush = null;
@@ -741,9 +738,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _createBrush
-     * @description Создание кисти, которой будут нарисованы точки.
+     * @description Creates brush to draw points.
      *
-     * @returns {HTMLElement} brush Канвас с отрисованной тенью круга.
+     * @returns {HTMLElement} brush Canvas with brush pattern.
      */
     Canvas.prototype._createBrush = function () {
         var brush = document.createElement('canvas'),
@@ -764,9 +761,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _createGradient
-     * @description Создание 256x1 градиента, которым будет раскрашена карта.
+     * @description Creates 256x1 px gradient to draw Heatmap.
      *
-     * @returns {Number[]} [r1, g1, b1, a1, r2, ...].
+     * @returns {Number[]} Image data.
      */
     Canvas.prototype._createGradient = function () {
         var canvas = document.createElement('canvas'),
@@ -792,9 +789,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _drawHeatmap
-     * @description Отрисовка тепловой карты.
+     * @description Draws Heatmap.
      *
-     * @returns {Canvas}
+     * @returns {Canvas} Canvas.
      */
     Canvas.prototype._drawHeatmap = function (points) {
         var context = this._context,
@@ -808,7 +805,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
                 'medianaOfWeights',
                 DEFAULT_OPTIONS.medianaOfWeights
             ),
-            // Множитель для установки медианы интенсивности точек.
+            // Factor to set median intensity.
             weightFactor = intensityOfMidpoint / medianaOfWeights;
 
         context.clearRect(0, 0, this._canvas.width, this._canvas.height);
@@ -832,22 +829,22 @@ ymaps.modules.define('heatmap.component.Canvas', [
     /**
      * @private
      * @function _colorize
-     * @description Раскрашивание пикселей карты.
+     * @description Paints Heatmap pixels.
      *
-     * @param {Number[]} pixels Бесцветная тепловая карта [r1, g1, b1, a1, r2, ...].
-     * @param {Number[]} gradient Градиент [r1, g1, b1, a1, r2, ...].
+     * @param {Number[]} pixels Colorless Heatmap as pixel data.
+     * @param {Number[]} gradient Gradient as pixel data.
      */
     Canvas.prototype._colorize = function (pixels) {
         var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity);
         for (var i = 3, length = pixels.length, j; i < length; i += 4) {
             if (pixels[i]) {
-                // Получаем цвет в градиенте, по значению прозрачночти.
+                // Obtain a color in gradient by transparency.
                 j = 4 * pixels[i];
                 pixels[i - 3] = this._gradient[j];
                 pixels[i - 2] = this._gradient[j + 1];
                 pixels[i - 1] = this._gradient[j + 2];
 
-                // Устанавливаем прозрачность слоя.
+                // Sets layer opacity.
                 pixels[i] = opacity * (this._gradient[j + 3] || 255);
             }
         }

@@ -17,17 +17,17 @@ ymaps.modules.define('heatmap.component.Canvas', [
      * @description Default Heatmap options.
      */
     var DEFAULT_OPTIONS = {
-        // Point radius
+        // Point radius.
         radius: 10,
-        // Radius factor
+        // Radius factor.
         radiusFactor: 1,
-        // Map layer opacity
+        // Map layer opacity.
         opacity: 0.8,
-        // Median point intencity
+        // Median point intencity.
         intensityOfMidpoint: 0.2,
-        // Median of points weights
+        // Median of points weights.
         medianaOfWeights: 1,
-        // Gradient
+        // Gradient.
         gradient: {
             0.1: 'rgba(128, 255, 0, 0.7)',
             0.2: 'rgba(255, 255, 0, 0.8)',
@@ -246,13 +246,13 @@ ymaps.modules.define('heatmap.component.Canvas', [
         var opacity = this.options.get('opacity', DEFAULT_OPTIONS.opacity);
         for (var i = 3, length = pixels.length, j; i < length; i += 4) {
             if (pixels[i]) {
-                // Obtain a color in gradient by transparency
+                // Obtain a color in gradient by transparency.
                 j = 4 * pixels[i];
                 pixels[i - 3] = this._gradient[j];
                 pixels[i - 2] = this._gradient[j + 1];
                 pixels[i - 1] = this._gradient[j + 2];
 
-                // Sets layer opacity
+                // Sets layer opacity.
                 pixels[i] = opacity * (this._gradient[j + 3] || 255);
             }
         }
