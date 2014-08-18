@@ -27,7 +27,7 @@ ymaps.modules.define('Heatmap', [
      * @description Heatmap constructor.
      *
      * @param {Object} data Points described using one of following formats:
-     * IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
+     *  IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
      * @param {Object} options Object describing rendering options:
      *  radius - radius of point influence (px);
      *  dissipating - true - disperse points on higher zoom levels according to radius
@@ -139,7 +139,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _setupLayer
-     * @description Sets up asotiated map layer.
+     * @description Sets up associated map layer.
      *
      * @returns {Layer} Layer instance.
      */
@@ -156,7 +156,7 @@ ymaps.modules.define('Heatmap', [
     /**
      * @private
      * @function _destroyLayer
-     * @description Destroys assotiated layer instance.
+     * @description Destroys associated layer instance.
      */
     Heatmap.prototype._destroyLayer = function () {
         this._destroyTileUrlsGenerator();

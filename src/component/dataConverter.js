@@ -10,7 +10,7 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
      * @function convert
      * @description Make weighted points array from input data.
      *
-     * @param {Object} data Points described useng one of following formats:
+     * @param {Object} data Points described using one of following formats:
      *  IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
      * @returns {Array} points Weighted points array.
      */
