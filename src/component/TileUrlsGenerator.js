@@ -105,7 +105,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
                 (tileNumber[0] + 1) * TILE_SIZE[0] / zoomFactor,
                 (tileNumber[1] + 1) * TILE_SIZE[1] / zoomFactor
             ]],
-            tileMargin = this._canvas.getBrushRadius(),
+            tileMargin = this._canvas.getBrushRadius() / zoomFactor,
 
             points = [];
         for (var i = 0, length = this._points.length, point; i < length; i++) {

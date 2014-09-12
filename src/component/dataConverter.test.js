@@ -9,16 +9,16 @@ describe('dataConverter', function () {
     });
 
     describe('#convert()', function () {
-        it('convert from JsonFeature', function () {
+        it('convert from JsonFeature[]', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
-                var data = {
+                var data = [{
                         id: 'id',
                         type: 'Feature',
                         geometry: {
                             type: 'Point',
                             coordinates: [21,21]
                         }
-                    },
+                    }],
                     points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
                     .to.eql(data.geometry.coordinates);

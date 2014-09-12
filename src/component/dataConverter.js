@@ -21,9 +21,7 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
             data = JSON.parse(data);
         }
 
-        if (this._isJsonFeature(data) && data.geometry.type == 'Point') {
-            points.push(this._convertJsonFeatureToPoint(data));
-        } else if (this._isJsonFeatureCollection(data)) {
+        if (this._isJsonFeatureCollection(data)) {
             for (var i = 0, l = data.features.length; i < l; i++) {
                 points = points.concat(
                     this.convert(data.features[i])
@@ -41,6 +39,8 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
                     points.push(
                         this._convertCoordinatesToPoint(item.coordinates)
                     );
+                } else if (this._isJsonFeature(item) && item.geometry.type == 'Point') {
+                    points.push(this._convertJsonFeatureToPoint(item));
                 } else if (this._isGeoObject(item) && item.geometry.getType() == 'Point') {
                     points.push(this._convertGeoObjectToPoint(item));
                 } else if (this._isCollection(item)) {
