@@ -162,7 +162,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
      * @returns {Number} radius factor.
      */
     function calculateRadiusFactor (zoom) {
-        return Math.pow(zoom, 1.1) / 10;
+        return Math.pow(zoom / 10, 1.1);
     }
 
     /**

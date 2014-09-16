@@ -157,6 +157,9 @@ ymaps.modules.define('heatmap.component.Canvas', [
             radius = this.getBrushRadius(),
             gradient = context.createRadialGradient(radius, radius, 0, radius, radius, radius);
 
+        brush.width = 2 * radius;
+        brush.height = 2 * radius;
+
         gradient.addColorStop(0, 'rgba(0,0,0,1)');
         gradient.addColorStop(1, 'rgba(0,0,0,0)');
   
