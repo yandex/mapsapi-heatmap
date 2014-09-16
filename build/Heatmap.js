@@ -26,16 +26,15 @@ ymaps.modules.define('Heatmap', [
      * @function Heatmap
      * @description Heatmap constructor.
      *
-     * @param {Object} data Points described using one of following formats:
+     * @param {Object} [data] Points described using one of following formats:
      *  IGeoObject, IGeoObject[], ICollection, ICollection[], GeoQueryResult, String|Object.
-     * @param {Object} options Object describing rendering options:
-     *  radius - radius of point influence (px);
-     *  dissipating - true - disperse points on higher zoom levels according to radius
-     *   (point radius equals radius * zoom / 10), false - don't disperse.
-     *   Default value is false;
-     *  opacity - Heatmap opacity (from 0 to 1);
-     *  intensityOfMidpoint - Intensity of median point (from 0 to 1);
-     *  gradient - JSON description of gradient.
+     * @param {Object} [options] Object describing rendering options:
+     *  {Number} [options.radius] - radius of point influence (px);
+     *  {Boolean|Function} [options.dissipating=false] - true - disperse points
+     *   on higher zoom levels according to radius, false - don't disperse;
+     *  {Number} [opacity.options] - Heatmap opacity (from 0 to 1);
+     *  {Number} [opacity.intensityOfMidpoint] - Intensity of median point (from 0 to 1);
+     *  {Object} [opacity.gradient] - JSON description of gradient.
      */
     var Heatmap = function (data, options) {
         this._unprocessedPoints = [];
@@ -501,8 +500,9 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
         var radiusFactor = this._canvas.options.get('radiusFactor');
         if (this.options.get('dissipating')) {
-            if (radiusFactor != zoom) {
-                this._canvas.options.set('radiusFactor', zoom / 10);
+            var newRadiusFactor = calculateRadiusFactor(zoom);
+            if (radiusFactor != newRadiusFactor) {
+                this._canvas.options.set('radiusFactor', newRadiusFactor);
             }
         } else if (radiusFactor) {
             this._canvas.options.unset('radiusFactor');
@@ -564,6 +564,17 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
             (point[1] >= bounds[0][1] - margin) &&
             (point[1] <= bounds[1][1] + margin);
     };
+
+    /**
+     * @function сalculateRadiusFactor
+     * @description Calculates a radius factor for zoom level.
+     *
+     * @param {Number} zoom Current zoom level.
+     * @returns {Number} radius factor.
+     */
+    function calculateRadiusFactor (zoom) {
+        return Math.pow(zoom, 1.1) / 10;
+    }
 
     /**
      * @function findMediana

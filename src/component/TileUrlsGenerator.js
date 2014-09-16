@@ -89,8 +89,9 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
     TileUrlsGenerator.prototype.getTileUrl = function (tileNumber, zoom) {
         var radiusFactor = this._canvas.options.get('radiusFactor');
         if (this.options.get('dissipating')) {
-            if (radiusFactor != zoom) {
-                this._canvas.options.set('radiusFactor', zoom / 10);
+            var newRadiusFactor = calculateRadiusFactor(zoom);
+            if (radiusFactor != newRadiusFactor) {
+                this._canvas.options.set('radiusFactor', newRadiusFactor);
             }
         } else if (radiusFactor) {
             this._canvas.options.unset('radiusFactor');
@@ -152,6 +153,17 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
             (point[1] >= bounds[0][1] - margin) &&
             (point[1] <= bounds[1][1] + margin);
     };
+
+    /**
+     * @function сalculateRadiusFactor
+     * @description Calculates a radius factor for zoom level.
+     *
+     * @param {Number} zoom Current zoom level.
+     * @returns {Number} radius factor.
+     */
+    function calculateRadiusFactor (zoom) {
+        return Math.pow(zoom, 1.1) / 10;
+    }
 
     /**
      * @function findMediana
