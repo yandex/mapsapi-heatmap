@@ -159,6 +159,38 @@ Destroys `Heatmap` instance
       heatmap.setMap(myMap);
   });
   ```
+* Weighted points.
+  
+  ```js
+  ymaps.modules.require(['Heatmap'], function (Heatmap) {
+      var data = {
+                type: 'FeatureCollection',
+                features: [{
+                    id: 'id1',
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [37.782551, -122.445368]
+                    },
+                    properties: {
+                        weight: 1  
+                    }
+                }, {
+                    id: 'id2',
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [37.782745, -122.444586]
+                    },
+                    properties: {
+                        weight: 10 
+                    }
+                }]
+            },
+          heatmap = new Heatmap(data);
+      heatmap.setMap(myMap);
+  });
+  ```
 
 * [Demo](http://yandex.github.io/mapsapi-heatmap/)
 
