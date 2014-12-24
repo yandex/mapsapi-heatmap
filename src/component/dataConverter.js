@@ -44,8 +44,8 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
                 } else if (this._isGeoObject(item) && item.geometry.getType() == 'Point') {
                     points.push(this._convertGeoObjectToPoint(item));
                 } else if (this._isCollection(item)) {
-                    var iterator = item.getIterator(),
-                        geoObject;
+                    var iterator = item.getIterator();
+                    var geoObject;
                     while ((geoObject = iterator.getNext()) != iterator.STOP_ITERATION) {
                         // Выполняем рекурсивно на случай вложенных коллекций.
                         points = points.concat(
@@ -139,7 +139,7 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
      * @returns {Boolean}
      */
     dataConverter._isJsonGeometry = function (object) {
-        return !!(object.type && object.coordinates);
+        return Boolean(object.type && object.coordinates);
     };
 
     /**
@@ -151,7 +151,7 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
      * @returns {Boolean}
      */
     dataConverter._isGeoObject = function (object) {
-        return !!(object.geometry && object.getOverlay);
+        return Boolean(object.geometry && object.getOverlay);
     };
 
     /**
@@ -178,7 +178,7 @@ ymaps.modules.define('heatmap.component.dataConverter', [], function (provide) {
      * @returns {Boolean}
      */
     dataConverter._isCollection = function (object) {
-        return !!object.getIterator;
+        return Boolean(object.getIterator);
     };
 
     provide(dataConverter);

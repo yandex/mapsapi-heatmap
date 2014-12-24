@@ -11,13 +11,13 @@ module.exports = function (grunt) {
                     'src/component/TileUrlsGenerator.js',
                     'src/component/Canvas.js'
                 ],
-                dest: 'build/Heatmap.js'
+                dest: 'build/heatmap.js'
             }
         },
         uglify: {
             build: {
-                src: 'build/Heatmap.js',
-                dest: 'build/Heatmap.min.js'
+                src: 'build/heatmap.js',
+                dest: 'build/heatmap.min.js'
             }
         },
         watch: {

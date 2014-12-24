@@ -1,5 +1,5 @@
-var should = chai.should(),
-    modules = ymaps.modules;
+var should = chai.should();
+var modules = ymaps.modules;
 
 describe('dataConverter', function () {
     before(function (done) {
@@ -12,33 +12,33 @@ describe('dataConverter', function () {
         it('convert from JsonFeature[]', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
                 var data = [{
-                        id: 'id',
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [21,21]
-                        }
-                    }],
-                    points = dataConverter.convert(data);
+                    id: 'id',
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [21, 21]
+                    }
+                }];
+                var points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
-                    .to.eql(data.geometry.coordinates);
+                    .to.eql(data[0].geometry.coordinates);
             });
         });
 
         it('convert from JsonFeatureCollection', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
                 var data = {
-                        type: 'FeatureCollection',
-                        features: [{
-                            id: 'id',
-                            type: 'Feature',
-                            geometry: {
-                                type: 'Point',
-                                coordinates: [21,21]
-                            }
-                        }]
-                    },
-                    points = dataConverter.convert(data);
+                    type: 'FeatureCollection',
+                    features: [{
+                        id: 'id',
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [21, 21]
+                        }
+                    }]
+                };
+                var points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
                     .to.eql(data.features[0].geometry.coordinates);
             });
@@ -46,8 +46,8 @@ describe('dataConverter', function () {
 
         it('convert from Number[]', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
-                var data = [21,21],
-                    points = dataConverter.convert(data);
+                var data = [21, 21];
+                var points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
                     .to.eql(data);
             });
@@ -55,8 +55,8 @@ describe('dataConverter', function () {
 
         it('convert from Number[][]', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
-                var data = [[21,21]],
-                    points = dataConverter.convert(data);
+                var data = [[21, 21]];
+                var points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
                     .to.eql(data[0]);
             });
@@ -65,10 +65,10 @@ describe('dataConverter', function () {
         it('convert from JsonGeometry', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
                 var data = {
-                        type: 'Point',
-                        coordinates: [21,21]
-                    },
-                    points = dataConverter.convert(data);
+                    type: 'Point',
+                    coordinates: [21, 21]
+                };
+                var points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
                     .to.eql(data.coordinates);
             });
@@ -76,44 +76,44 @@ describe('dataConverter', function () {
 
         it('convert from GeoObject', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
-                var data = new ymaps.Placemark([21,21]),
-                    points = dataConverter.convert(data);
+                var data = new ymaps.Placemark([21, 21]);
+                var points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
-                    .to.eql([21,21]);
-            }); 
+                    .to.eql([21, 21]);
+            });
         });
 
         it('convert from IGeoObject[]', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
-                var data = [new ymaps.Placemark([21,21])],
-                    points = dataConverter.convert(data);
+                var data = [new ymaps.Placemark([21, 21])];
+                var points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
-                    .to.eql([21,21]);
-            }); 
+                    .to.eql([21, 21]);
+            });
         });
 
         it('convert from IGeoObjectCollection', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
                 var data = new ymaps.GeoObjectCollection(
-                        new ymaps.Placemark([21,21])
-                    ),
-                    points = dataConverter.convert(data);
+                    new ymaps.Placemark([21, 21])
+                );
+                var points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
-                    .to.eql([21,21]);
-            }); 
+                    .to.eql([21, 21]);
+            });
         });
 
         it('convert from nested IGeoObjectCollection', function () {
             modules.require('heatmap.component.dataConverter', function (dataConverter) {
                 var data = new ymaps.GeoObjectCollection(
-                        new ymaps.GeoObjectCollection(
-                            new ymaps.Placemark([21,21])
-                        )
-                    ),
-                    points = dataConverter.convert(data);
+                    new ymaps.GeoObjectCollection(
+                        new ymaps.Placemark([21, 21])
+                    )
+                );
+                var points = dataConverter.convert(data);
                 chai.expect(points[0].coordinates)
-                    .to.eql([21,21]);
-            }); 
+                    .to.eql([21, 21]);
+            });
         });
     });
 });

@@ -97,18 +97,21 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
             this._canvas.options.unset('radiusFactor');
         }
 
-        var zoomFactor = Math.pow(2, zoom),
+        var zoomFactor = Math.pow(2, zoom);
 
-            tileBounds = [[
+        var tileBounds = [
+            [
                 tileNumber[0] * TILE_SIZE[0] / zoomFactor,
                 tileNumber[1] * TILE_SIZE[1] / zoomFactor
-            ], [
+            ],
+            [
                 (tileNumber[0] + 1) * TILE_SIZE[0] / zoomFactor,
                 (tileNumber[1] + 1) * TILE_SIZE[1] / zoomFactor
-            ]],
-            tileMargin = this._canvas.getBrushRadius() / zoomFactor,
+            ]
+        ];
+        var tileMargin = this._canvas.getBrushRadius() / zoomFactor;
 
-            points = [];
+        var points = [];
         for (var i = 0, length = this._points.length, point; i < length; i++) {
             point = this._points[i].coordinates;
             if (this._contains(tileBounds, point, tileMargin)) {
@@ -161,7 +164,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
      * @param {Number} zoom Current zoom level.
      * @returns {Number} radius factor.
      */
-    function calculateRadiusFactor (zoom) {
+    function calculateRadiusFactor(zoom) {
         return Math.pow(zoom / 10, 1.1);
     }
 
@@ -169,9 +172,9 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
      * @function findMediana
      * @description Calculates a median of provided array of data.
      */
-    function findMediana (selection) {
-        var sortSelection = selection.sort(comparator),
-            center = sortSelection.length / 2;
+    function findMediana(selection) {
+        var sortSelection = selection.sort(comparator);
+        var center = sortSelection.length / 2;
         if (center !== Math.floor(center)) {
             return sortSelection[Math.floor(center)];
         } else {
@@ -183,7 +186,7 @@ ymaps.modules.define('heatmap.component.TileUrlsGenerator', [
      * @function comparator
      * @description Compares two numbers.
      */
-    function comparator (a, b) {
+    function comparator(a, b) {
         return a - b;
     }
 

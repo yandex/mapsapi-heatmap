@@ -146,7 +146,7 @@ ymaps.modules.define('Heatmap', [
         this._setupTileUrlsGenerator();
         var getTileUrl = this._tileUrlsGenerator.getTileUrl.bind(this._tileUrlsGenerator);
 
-        this._layer = new Layer(getTileUrl, { tileTransparent: true });
+        this._layer = new Layer(getTileUrl, {tileTransparent: true});
         this._setupOptionMonitor();
 
         return this._layer;

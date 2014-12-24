@@ -5,7 +5,7 @@
 
 ## Loading
 
-1. Put module source code ([Heatmap.min.js](https://github.com/yandex/mapsapi-heatmap/blob/master/build/Heatmap.min.js)) on your CDN.
+1. Put module source code ([heatmap.min.js](https://github.com/yandex/mapsapi-heatmap/blob/master/build/heatmap.min.js)) on your CDN.
 
 2. Load both [Yandex Maps JS API 2.1](http://api.yandex.com/maps/doc/jsapi/) and module source code by adding following code into &lt;head&gt; section of your page
    ```html
@@ -160,7 +160,7 @@ Destroys `Heatmap` instance
   });
   ```
 * Weighted points.
-  
+
   ```js
   ymaps.modules.require(['Heatmap'], function (Heatmap) {
       var data = {
@@ -173,7 +173,7 @@ Destroys `Heatmap` instance
                         coordinates: [37.782551, -122.445368]
                     },
                     properties: {
-                        weight: 1  
+                        weight: 1
                     }
                 }, {
                     id: 'id2',
@@ -183,7 +183,7 @@ Destroys `Heatmap` instance
                         coordinates: [37.782745, -122.444586]
                     },
                     properties: {
-                        weight: 10 
+                        weight: 10
                     }
                 }]
             },
