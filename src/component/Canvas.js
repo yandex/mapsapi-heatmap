@@ -77,9 +77,12 @@ ymaps.modules.define('heatmap.component.Canvas', [
      * @returns {String} Data URL.
      */
     Canvas.prototype.generateDataURLHeatmap = function (points) {
-        this._drawHeatmap(points || []);
-
-        return this._canvas.toDataURL();
+        if (points && points.length > 0) {
+            this._drawHeatmap(points);
+            return this._canvas.toDataURL();
+        } else {
+            return '';
+        }
     };
 
     /**
