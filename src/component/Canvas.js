@@ -37,6 +37,12 @@ ymaps.modules.define('heatmap.component.Canvas', [
     };
 
     /**
+     * @constant EMPTY_PNG
+     * @description Empty transparent png
+     */
+    var EMPTY_PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAABFUlEQVR4nO3BMQEAAADCoPVP7WsIoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeAMBPAABPO1TCQAAAABJRU5ErkJggg==';
+
+    /**
      * @public
      * @function Canvas
      * @description Heatmap rendering module constructor.
@@ -81,7 +87,7 @@ ymaps.modules.define('heatmap.component.Canvas', [
             this._drawHeatmap(points);
             return this._canvas.toDataURL();
         } else {
-            return '';
+            return EMPTY_PNG;
         }
     };
 
