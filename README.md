@@ -5,16 +5,14 @@
 
 ## Loading
 
-1. Put module source code ([heatmap.min.js](https://github.com/yandex/mapsapi-heatmap/blob/master/build/heatmap.min.js)) on your CDN.
-
-2. Load both [Yandex Maps JS API 2.1](http://api.yandex.com/maps/doc/jsapi/) and module source code by adding following code into &lt;head&gt; section of your page
+1. Load both [Yandex Maps JS API 2.1](http://api.yandex.com/maps/doc/jsapi/) and module source code by adding following code into &lt;head&gt; section of your page
    ```html
    <script src="http://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
    <!-- Change my.cdn.tld to your CDN host name -->
-   <script src="http://my.cdn.tld/Heatmap.min.js" type="text/javascript"></script>
+   <script src="https://yastatic.net/s3/mapsapi-jslibs/heatmap/0.0.1/heatmap.min.js" type="text/javascript"></script>
    ```
 
-3. Get access to module functions by using [ymaps.modules.require](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/modules.require.xml) method
+2. Get access to module functions by using [ymaps.modules.require](http://api.yandex.ru/maps/doc/jsapi/2.1/ref/reference/modules.require.xml) method
    ```js
    ymaps.modules.require(['Heatmap'], function (Heatmap) {
         var heatmap = new Heatmap();
