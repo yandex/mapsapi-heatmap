@@ -49,7 +49,7 @@
 
 
 ### getData
-####Returns:
+#### Returns:
 reference to data provided to constructor or [setData](#setdata) method.
 
 ### setData
